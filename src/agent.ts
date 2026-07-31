@@ -207,6 +207,21 @@ export class SupportAgent extends Agent<Env, SupportAgentState> {
       return;
     }
 
+    // Kapso Realtor concierge: deterministic intake with one question at a
+    // time and native reply buttons. It protects the demo from generic LLM
+    // questionnaires and creates a scored lead only after contact capture.
+    if (this.env.BOT_NICHE === "realtor" && this.state.channel === "kapso") {
+      const { runRealtorIntake } = await import("./realtor/intake");
+      const handled = await runRealtorIntake({
+        env: this.env, db, conversationId: convId, channelUserId: this.state.channelUserId, text: combined,
+        reply: async (text) => {
+          await msgs.append(convId, "assistant", text);
+          await pickAdapter("kapso").sendReply({ channel: "kapso", channelUserId: this.state.channelUserId, chunks: [text] }, this.env);
+        },
+      });
+      if (handled) return;
+    }
+
     // Persist user message
     await msgs.append(convId, "user", combined);
     await convs.touchLastMessage(convId);

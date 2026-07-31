@@ -212,6 +212,20 @@ CREATE TABLE IF NOT EXISTS kapso_webhook_events (
   received_at INTEGER NOT NULL
 );
 
+-- Estado breve del quiz conversacional Realtor por WhatsApp/Kapso.
+CREATE TABLE IF NOT EXISTS realtor_intakes (
+  conversation_id TEXT PRIMARY KEY,
+  step TEXT NOT NULL,
+  name TEXT,
+  contact TEXT,
+  operation TEXT,
+  area TEXT,
+  budget TEXT,
+  timeline TEXT,
+  preapproved TEXT,
+  updated_at INTEGER NOT NULL
+);
+
 -- Hawk Guru Realtor Suite: canonical CRM pipelines. These are deliberately
 -- separate from the Starter lead.status enum so existing bots remain intact.
 CREATE TABLE IF NOT EXISTS realtor_pipelines (
