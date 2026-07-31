@@ -24,6 +24,16 @@ export function adminAuth(env: Env): MiddlewareHandler {
   });
 }
 
+/** Dedicated credential for the Hawk Guru Control Center. Never falls back to
+ * the Realtor password: a missing secret keeps /hq unavailable. */
+export function controlCenterAuth(env: Env): MiddlewareHandler {
+  const password = env.DASHBOARD_PASSWORD_Control_Center;
+  if (!password) {
+    return async (c) => c.text("Control Center password is not configured", 503);
+  }
+  return basicAuth({ username: ADMIN_USERNAME, password });
+}
+
 /**
  * Constant-time string comparison to avoid leaking length/content via timing.
  * Returns true only when both strings are byte-for-byte identical.

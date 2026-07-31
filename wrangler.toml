@@ -43,6 +43,7 @@ DASHBOARD_BASE_URL = "https://hawk-guru-realtor-suite.marcos-ferrero001.workers.
 # Secrets (set with `wrangler secret put <NAME>` — never commit values):
 #   ANTHROPIC_API_KEY          required — Claude API
 #   DASHBOARD_PASSWORD         required (Pro) — HTTP Basic Auth for /admin (user: admin)
+#   DASHBOARD_PASSWORD_Control_Center  required for /hq (separate Hawk Guru-only access)
 #   KB_REINDEX_TOKEN           required — guards POST /kb/reindex (header: X-Reindex-Token)
 #                              set with: wrangler secret put KB_REINDEX_TOKEN
 #   TELEGRAM_BOT_TOKEN         per-channel — Telegram bot
