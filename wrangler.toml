@@ -31,13 +31,14 @@ binding = "CATALOG"
 bucket_name = "hawk-guru-realtor-catalog"
 
 [vars]
-BOT_NAME = "{{BOT_NAME}}"
-BUSINESS_NAME = "{{BUSINESS_NAME}}"
-BOT_LANGUAGE = "{{BOT_LANGUAGE}}"
-BOT_TIER = "{{BOT_TIER}}"  # 'free' | 'pro'
+BOT_NAME = "Hawk Guru Realtor Suite"
+BUSINESS_NAME = "Hawk Guru Realtor Suite"
+BOT_LANGUAGE = "es"
+BOT_TIER = "pro"
 BOT_NICHE = "realtor"      # activates Hawk Guru Realtor Suite
+LLM_PROVIDER = "openai"
 BUFFER_SECONDS = "15"
-DASHBOARD_BASE_URL = "https://horizontes-bot-{{BOT_SLUG}}.workers.dev"
+DASHBOARD_BASE_URL = "https://hawk-guru-realtor-suite.marcos-ferrero001.workers.dev"
 
 # Secrets (set with `wrangler secret put <NAME>` — never commit values):
 #   ANTHROPIC_API_KEY          required — Claude API
@@ -58,8 +59,8 @@ DASHBOARD_BASE_URL = "https://horizontes-bot-{{BOT_SLUG}}.workers.dev"
 #                              set with: wrangler secret put CONTROL_PLANE_TOKEN
 #   CONTROL_PLANE_URL          optional (var) — base URL of the control plane (future reports / license check)
 
-[triggers]
-crons = ["0 3 * * *"]  # daily 3am UTC: purge old messages
+# Temporalmente sin cron: esta cuenta ya alcanzó el límite de 5 triggers.
+# Restablecer al liberar un trigger para activar purga, insights y follow-ups.
 
 # DASHBOARD_PASSWORD  (secret) — HTTP Basic Auth password for the admin dashboard; username is always "admin".
 # Set it with: wrangler secret put DASHBOARD_PASSWORD
