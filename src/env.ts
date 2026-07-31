@@ -88,10 +88,6 @@ export interface Env {
   // Username is always "admin". Set via `wrangler secret put DASHBOARD_PASSWORD`.
   DASHBOARD_PASSWORD: string;
 
-  // "1" = panel admin PÚBLICO (sin Basic Auth). Solo cuando el dueño lo decide
-  // explícitamente (var en wrangler.toml); sin la var, el guard queda activo.
-  DASHBOARD_PUBLIC?: string;
-
   // Token guarding POST /kb/reindex (header: X-Reindex-Token). Secret.
   // Set via `wrangler secret put KB_REINDEX_TOKEN`.
   KB_REINDEX_TOKEN: string;

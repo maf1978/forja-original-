@@ -324,3 +324,19 @@ CREATE TABLE IF NOT EXISTS open_house_visitors (
 );
 CREATE INDEX IF NOT EXISTS idx_open_house_visitors_followup ON open_house_visitors(open_house_id, followup_due_at);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_open_house_visitor_unique ON open_house_visitors(open_house_id, phone);
+
+-- Control Center: registro de clientes administrados por Hawk Guru
+-- Esta tabla vive en el plano de control y cada cliente conserva su propia suite
+CREATE TABLE IF NOT EXISTS managed_clients (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  brokerage TEXT,
+  slug TEXT NOT NULL UNIQUE,
+  dashboard_url TEXT,
+  plan TEXT NOT NULL DEFAULT 'trial',
+  status TEXT NOT NULL DEFAULT 'onboarding',
+  channel_status TEXT NOT NULL DEFAULT 'pending',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_managed_clients_status ON managed_clients(status, created_at DESC);

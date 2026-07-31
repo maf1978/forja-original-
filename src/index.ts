@@ -17,6 +17,7 @@ import { detectKind } from "./learn/fieldPath";
 import { saveCapture, isLearnMode } from "./learn/mapping";
 import { tokensMatch } from "./http-auth";
 import { apiApp } from "./api";
+import { hqApp } from "./hq";
 import { registerOpenHouseVisitor, renderPublicOpenHouse, type OpenHouse } from "./open-houses";
 
 export { SupportAgent } from "./agent";
@@ -263,6 +264,10 @@ app.post("/webhooks/learn/:channel", async (c) => {
 
 // Admin dashboard — Basic Auth guarded sub-app mounted at /admin/*.
 app.route("/admin", adminApp);
+
+// Hawk Guru-only portfolio control center. It is deliberately separate from
+// the Realtor-facing /admin suite and stays behind Basic Auth.
+app.route("/hq", hqApp);
 
 // Control-plane API — Bearer-guarded (CONTROL_PLANE_TOKEN) read-only sub-app
 // mounted at /api/* for a future hosted control plane (health + metrics).
