@@ -18,6 +18,11 @@ export type MemberConfig = typeof memberConfig;
 // Business context consumed by src/businessContext.ts to render the
 // <business_context> section of the system prompt. Edit freely.
 export const businessConfig = {
+  hours: "",
+  services: [] as { name: string; price: number }[],
+  location: "",
+  paymentMethods: [] as string[],
+  contactPhone: "",
   customFields: {
     Especialidad: "Asistencia para comprar, vender o rentar propiedades.",
     Proceso: "El concierge califica prospectos, registra preferencias y coordina el siguiente paso con un realtor.",
