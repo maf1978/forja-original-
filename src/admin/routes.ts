@@ -44,6 +44,7 @@ import { renderLeads, exportLeadsCsv } from "./views/leads";
 import { renderPipelines } from "./views/pipelines";
 import { renderQualification } from "./views/qualification";
 import { renderAppointments } from "./views/appointments";
+import { renderOpenHouses, renderOpenHouseVisitors } from "../open-houses";
 import { renderTickets } from "./views/tickets";
 import { renderConfig } from "./views/config";
 import { renderConexiones } from "./views/conexiones";
@@ -383,6 +384,38 @@ adminApp.get("/qualification", (c) => c.html(renderQualification(c.env)));
 adminApp.get("/appointments", async (c) => {
   if (getNiche(c.env).id !== "realtor") return c.redirect("/admin/leads");
   return c.html(await renderAppointments(c.env));
+});
+
+adminApp.get("/open-houses", async (c) => {
+  if (getNiche(c.env).id !== "realtor") return c.redirect("/admin/leads");
+  return c.html(await renderOpenHouses(c.env));
+});
+
+adminApp.post("/open-houses", async (c) => {
+  if (getNiche(c.env).id !== "realtor") return c.text("No disponible", 404);
+  const form = await c.req.formData();
+  const title = String(form.get("title") ?? "").trim().slice(0, 120);
+  const address = String(form.get("address") ?? "").trim().slice(0, 180);
+  const scheduledRaw = String(form.get("scheduled_at") ?? "").trim();
+  const scheduledAt = scheduledRaw ? Date.parse(scheduledRaw) : NaN;
+  if (!title || !address) return c.redirect("/admin/open-houses");
+  const now = Date.now();
+  await new Db(c.env.DB).run("INSERT INTO open_houses (id, token, title, address, scheduled_at, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'open', ?, ?)", [crypto.randomUUID(), crypto.randomUUID().replaceAll("-", ""), title, address, Number.isFinite(scheduledAt) ? scheduledAt : null, now, now]);
+  return c.redirect("/admin/open-houses");
+});
+
+adminApp.get("/open-houses/:id", async (c) => c.html(await renderOpenHouseVisitors(c.env, c.req.param("id"))));
+
+adminApp.post("/open-houses/:id/status", async (c) => {
+  const form = await c.req.formData(); const status = String(form.get("status") ?? "open");
+  const allowed = status === "offers" || status === "closed" ? status : "open";
+  await new Db(c.env.DB).run("UPDATE open_houses SET status = ?, updated_at = ? WHERE id = ?", [allowed, Date.now(), c.req.param("id")]);
+  return c.redirect("/admin/open-houses");
+});
+
+adminApp.post("/open-houses/visitors/:id/contacted", async (c) => {
+  await new Db(c.env.DB).run("UPDATE open_house_visitors SET contacted_at = ? WHERE id = ?", [Date.now(), c.req.param("id")]);
+  return c.redirect(c.req.header("Referer") || "/admin/open-houses");
 });
 
 adminApp.post("/qualification", async (c) => {

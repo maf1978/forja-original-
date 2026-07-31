@@ -33,7 +33,7 @@ const PIPELINES: Array<{ kind: RealtorPipelineKind; name: string; stages: Array<
   { kind: "renter", name: "Renters", stages: [["Nuevo", "#7aa2d6", 0, 0], ["Calificado", "#b99bd6", 0, 0], ["Showing", "#f5a623", 0, 0], ["Aplicación", "#f07a3f", 0, 0], ["Aprobado", "#7fb77e", 0, 0], ["Move-in", "#54a66b", 1, 1], ["Perdido", "#d97a6a", 1, 0]] },
 ];
 
-const TAGS = ["buyer", "seller", "renter", "hot", "warm", "preapproved", "cash-buyer", "needs-financing", "urgent", "lead-magnet"];
+const TAGS = ["buyer", "seller", "renter", "hot", "warm", "preapproved", "cash-buyer", "needs-financing", "urgent", "lead-magnet", "open-house"];
 
 export class RealtorRepo {
   constructor(private readonly db: Db) {}

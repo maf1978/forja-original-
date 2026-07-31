@@ -17,12 +17,31 @@ import { detectKind } from "./learn/fieldPath";
 import { saveCapture, isLearnMode } from "./learn/mapping";
 import { tokensMatch } from "./http-auth";
 import { apiApp } from "./api";
+import { registerOpenHouseVisitor, renderPublicOpenHouse, type OpenHouse } from "./open-houses";
 
 export { SupportAgent } from "./agent";
 
 const app = new Hono<{ Bindings: Env }>();
 
 app.get("/health", (c) => c.text("ok", 200));
+
+// Registro público de Open House. El token identifica un único listing y evita
+// que el QR o el seguimiento crucen visitantes entre propiedades.
+app.get("/open-house/:token", async (c) => {
+  const home = await new Db(c.env.DB).first<OpenHouse>("SELECT * FROM open_houses WHERE token = ?", [c.req.param("token")]);
+  return home ? c.html(renderPublicOpenHouse(home)) : c.text("Open House no encontrado", 404);
+});
+
+app.post("/open-house/:token", async (c) => {
+  const home = await new Db(c.env.DB).first<OpenHouse>("SELECT * FROM open_houses WHERE token = ?", [c.req.param("token")]);
+  if (!home) return c.text("Open House no encontrado", 404);
+  const form = await c.req.formData();
+  const name = String(form.get("name") ?? "").trim().slice(0, 100);
+  const phone = String(form.get("phone") ?? "").trim().slice(0, 40);
+  if (!name || !phone) return c.html(renderPublicOpenHouse(home));
+  await registerOpenHouseVisitor(c.env, home, { name, phone, email: String(form.get("email") ?? "").slice(0, 160), interest: String(form.get("interest") ?? "").slice(0, 80) });
+  return c.html(renderPublicOpenHouse(home, true));
+});
 
 // Parse the provider payload via the channel adapter, derive the per-user DO id
 // (channel + ':' + channelUserId), and forward the normalized message to the

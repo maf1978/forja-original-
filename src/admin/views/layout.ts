@@ -256,6 +256,7 @@ function sidebar(activeTab: string, pro: boolean, niche: NichePack | null): stri
     navigation[1].items.splice(2, 0, { id: "pipelines", label: "Pipelines", href: "/admin/pipelines", icon: "kanban-square" });
     navigation[1].items.splice(3, 0, { id: "qualification", label: "Calificar Lead", href: "/admin/qualification", icon: "clipboard-check" });
     navigation[1].items.splice(4, 0, { id: "appointments", label: "Citas", href: "/admin/appointments", icon: "calendar-check-2" });
+    navigation[1].items.splice(5, 0, { id: "openhouses", label: "Open Houses", href: "/admin/open-houses", icon: "qr-code" });
   }
   const sections = navigation.map((sec) => {
     const hasActive = sec.items.some((i) => i.id === activeTab);
@@ -306,6 +307,7 @@ export function layout(opts: { title: string; activeTab: string; body: string; e
     dynamicNav[1].items.splice(2, 0, { id: "pipelines", label: "Pipelines", href: "/admin/pipelines", icon: "kanban-square" });
     dynamicNav[1].items.splice(3, 0, { id: "qualification", label: "Calificar Lead", href: "/admin/qualification", icon: "clipboard-check" });
     dynamicNav[1].items.splice(4, 0, { id: "appointments", label: "Citas", href: "/admin/appointments", icon: "calendar-check-2" });
+    dynamicNav[1].items.splice(5, 0, { id: "openhouses", label: "Open Houses", href: "/admin/open-houses", icon: "qr-code" });
   }
   const section = dynamicNav.find((s) => s.items.some((i) => i.id === opts.activeTab)) ?? dynamicNav[0];
   const item = applyNiche(section.items.find((i) => i.id === opts.activeTab) ?? section.items[0], niche);

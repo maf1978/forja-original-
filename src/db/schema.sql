@@ -293,3 +293,34 @@ CREATE TABLE IF NOT EXISTS realtor_pipeline_events (
   FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_realtor_events_lead ON realtor_pipeline_events(lead_id, created_at DESC);
+
+-- Open Houses: cada listing tiene token y QR propios. Los visitantes se atan
+-- siempre al listing exacto para que nunca reciban seguimiento de otra propiedad.
+CREATE TABLE IF NOT EXISTS open_houses (
+  id TEXT PRIMARY KEY,
+  token TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  address TEXT NOT NULL,
+  scheduled_at INTEGER,
+  status TEXT NOT NULL DEFAULT 'open',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_open_houses_status ON open_houses(status, scheduled_at);
+
+CREATE TABLE IF NOT EXISTS open_house_visitors (
+  id TEXT PRIMARY KEY,
+  open_house_id TEXT NOT NULL,
+  lead_id TEXT,
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  email TEXT,
+  interest TEXT,
+  created_at INTEGER NOT NULL,
+  followup_due_at INTEGER NOT NULL,
+  contacted_at INTEGER,
+  FOREIGN KEY (open_house_id) REFERENCES open_houses(id) ON DELETE CASCADE,
+  FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_open_house_visitors_followup ON open_house_visitors(open_house_id, followup_due_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_open_house_visitor_unique ON open_house_visitors(open_house_id, phone);
