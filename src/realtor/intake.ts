@@ -17,8 +17,8 @@ export async function runRealtorIntake(input: { env: Env; db: Db; conversationId
   const { env, db, conversationId, channelUserId, text, reply } = input;
   const current = await db.first<Intake>("SELECT * FROM realtor_intakes WHERE conversation_id = ?", [conversationId]);
   if (!current) {
-    await save(db, conversationId, { step: "name" });
-    await reply("Hola, soy el asistente virtual de Jorge Cruz Leal P.A., REALTOR® de Real Estate Empire Group. Jorge ha trabajado recientemente con compradores y sellers en Miami y Hialeah. ¿Con quién tengo el gusto?");
+    await save(db, conversationId, { step: "operation" });
+    await sendKapsoButtons(channelUserId, "Hola, soy el asistente virtual de Jorge Cruz Leal P.A., REALTOR® de Real Estate Empire Group. Jorge ha trabajado recientemente con compradores y sellers en Miami y Hialeah. ¿Cómo te puede ayudar hoy?", [{ id: "buyer", title: "Comprar" }, { id: "seller", title: "Vender" }, { id: "renter", title: "Rentar" }], env);
     return true;
   }
   if (current.step === "name") {
@@ -27,15 +27,15 @@ export async function runRealtorIntake(input: { env: Env; db: Db; conversationId
     return true;
   }
   if (current.step === "phone") {
-    await save(db, conversationId, { ...current, step: "operation", contact: text.trim() });
-    await sendKapsoButtons(channelUserId, "Gracias. ¿Cómo te puede ayudar Jorge hoy?", [{ id: "buyer", title: "Comprar" }, { id: "seller", title: "Vender" }, { id: "renter", title: "Rentar" }], env);
+    await save(db, conversationId, { ...current, step: "area", contact: text.trim() });
+    await sendKapsoButtons(channelUserId, current.operation === "seller" ? "Gracias. ¿En qué zona está la propiedad?" : current.operation === "renter" ? "Gracias. ¿En qué zona te gustaría rentar?" : "Gracias. ¿En qué zona te gustaría comprar?", [{ id: "miami", title: "Miami" }, { id: "hialeah", title: "Hialeah" }, { id: "other-area", title: "Otra zona" }], env);
     return true;
   }
   if (current.step === "operation") {
     const normalized = text.toLowerCase();
     const operation = normalized.includes("vend") ? "seller" : normalized.includes("rent") || normalized.includes("alquil") ? "renter" : "buyer";
-    await save(db, conversationId, { ...current, step: "area", operation });
-    await sendKapsoButtons(channelUserId, operation === "seller" ? "Perfecto. ¿En qué zona está la propiedad?" : operation === "renter" ? "Perfecto. ¿En qué zona te gustaría rentar?" : "Perfecto. ¿En qué zona te gustaría comprar?", [{ id: "miami", title: "Miami" }, { id: "hialeah", title: "Hialeah" }, { id: "other-area", title: "Otra zona" }], env);
+    await save(db, conversationId, { ...current, step: "name", operation });
+    await reply("Perfecto. Para personalizar tu búsqueda con Jorge, ¿con quién tengo el gusto?");
     return true;
   }
   if (current.step === "area") {
