@@ -91,6 +91,22 @@ export async function renderOverview(env: Env): Promise<string> {
     "SELECT COUNT(*) as n FROM tickets WHERE status != 'resolved'",
   ))?.n ?? 0;
 
+  const hotLeads = await db.all<{ id: string; name: string | null; intent: string; score: number; next_action: string | null; metadata: string | null }>(
+    `SELECT l.id, l.name, l.intent, r.score, r.next_action, l.metadata
+     FROM realtor_lead_pipeline r JOIN leads l ON l.id = r.lead_id
+     ORDER BY r.score DESC, r.updated_at DESC LIMIT 5`,
+  );
+  const intakeStarted = (await db.first<{ n: number }>("SELECT COUNT(*) n FROM realtor_intakes"))?.n ?? 0;
+  const intakeCompleted = (await db.first<{ n: number }>("SELECT COUNT(*) n FROM realtor_intakes WHERE step = 'complete'"))?.n ?? 0;
+  const hotCount = hotLeads.filter((l) => l.score >= 60).length;
+  const actNow = hotLeads.length
+    ? hotLeads.map((l) => {
+      let m: Record<string, string> = {}; try { m = JSON.parse(l.metadata ?? "{}"); } catch { /* noop */ }
+      return `<a href="/admin/leads" style="display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)"><span style="width:32px;height:32px;display:grid;place-items:center;background:var(--accent-soft);border:1px solid var(--accent);font-size:11px;color:var(--accent)">${l.score}</span><span style="flex:1;min-width:0"><b style="display:block;color:var(--cream);font-size:12px">${esc(l.name || "Prospecto")}</b><small style="color:var(--muted);font-size:10px">${esc(m.area || l.intent)} · ${esc(m.budget || "presupuesto pendiente")}</small></span><span style="font-size:10px;color:var(--accent2);max-width:145px;text-align:right">${esc(l.next_action || "Revisar hoy")}</span></a>`;
+    }).join("")
+    : `<p class="text-dim" style="font-size:12px">Todavía no hay leads calificados. El primer lead de WhatsApp aparecerá aquí.</p>`;
+  const qualificationFunnel = `<div class="card" style="border:1px solid var(--line);background:var(--panel);padding:18px"><div style="display:flex;justify-content:space-between;align-items:baseline"><div><div style="font-size:10px;letter-spacing:.16em;color:var(--accent);text-transform:uppercase">Qualification Journey</div><h2 style="font-family:'Space Grotesk';font-size:19px;margin:5px 0">De WhatsApp a oportunidad</h2></div><a href="/admin/qualification" style="font-size:11px">Abrir quiz →</a></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px">${[["Iniciaron", intakeStarted], ["Completaron", intakeCompleted], ["Hot", hotCount], ["Citas", 0]].map(([label, value], i) => `<div style="border:1px solid var(--line);background:${i === 2 ? "var(--accent-soft)" : "var(--bg)"};padding:12px"><div style="font-family:'Space Grotesk';font-size:25px;font-weight:700;color:${i === 2 ? "var(--accent)" : "var(--cream)"}">${value}</div><div style="font-size:9px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase">${label}</div></div>`).join("")}</div><div style="display:flex;gap:5px;align-items:center;margin-top:16px;font-size:10px;color:var(--muted)"><span>WhatsApp</span><b style="color:var(--accent)">→</b><span>Perfil</span><b style="color:var(--accent)">→</b><span>Budget</span><b style="color:var(--accent)">→</b><span>Pre-calificación</span><b style="color:var(--accent)">→</b><span>Cita</span></div></div>`;
+
   // --- Actividad 7 días ---------------------------------------------------------
   const activityRows = await db.all<{ day: string; msgs: number }>(
     `SELECT date(created_at / 1000, 'unixepoch') as day, COUNT(*) as msgs
@@ -254,6 +270,8 @@ export async function renderOverview(env: Env): Promise<string> {
 
   const body = `
     <div class="flex flex-col gap-[22px]">
+      <section class="card" style="border:1px solid var(--line);background:linear-gradient(135deg,var(--panel),var(--panel2));padding:20px"><div style="display:flex;justify-content:space-between;gap:18px;align-items:start;flex-wrap:wrap"><div><div style="font-size:10px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase">Today’s Deal Desk</div><h2 style="font-family:'Space Grotesk';font-size:25px;margin:6px 0">Tu operación inmobiliaria, priorizada.</h2><p class="text-dim" style="font-size:12px;margin:0;max-width:560px">El concierge convierte WhatsApp en perfiles completos. Empieza por los leads con intención, presupuesto y plazo definidos.</p></div><a class="bigbtn" href="/admin/qualification" style="background:var(--accent);color:#10130e;padding:11px 14px;border:1px solid var(--accent);font-size:11px;font-weight:700">+ CALIFICAR LEAD</a></div></section>
+      <section class="grid grid-cols-1 lg:grid-cols-[1.25fr_.75fr] gap-[14px]">${qualificationFunnel}<div class="card" style="border:1px solid var(--line);background:var(--panel);padding:18px"><div style="font-size:10px;letter-spacing:.16em;color:var(--accent);text-transform:uppercase">Act Now</div><h2 style="font-family:'Space Grotesk';font-size:19px;margin:5px 0 8px">Leads que merecen atención</h2>${actNow}<a href="/admin/pipelines" style="display:inline-block;margin-top:12px;font-size:11px">Ver pipeline →</a></div></section>
       <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[14px]">
         <div class="card bg-panel border border-line p-4 relative overflow-hidden" style="animation-delay:.02s">
           <div class="absolute top-3 right-3 text-[9.5px] tracking-[.2em] text-dim uppercase">01</div>
