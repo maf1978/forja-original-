@@ -18,8 +18,15 @@ interface Col {
 
 export async function renderLeads(env: Env): Promise<string> {
   const niche = getNiche(env);
-  const leads = new LeadsRepo(new Db(env.DB));
+  const db = new Db(env.DB);
+  const leads = new LeadsRepo(db);
   const list = await leads.list(100);
+  const dossierRows = await db.all<{ lead_id: string; score: number; next_action: string | null; score_reason: string | null; tags: string | null }>(
+    `SELECT r.lead_id, r.score, r.next_action, r.score_reason, GROUP_CONCAT(t.slug, ',') tags
+     FROM realtor_lead_pipeline r LEFT JOIN realtor_lead_tags lt ON lt.lead_id=r.lead_id
+     LEFT JOIN realtor_tags t ON t.id=lt.tag_id GROUP BY r.lead_id`,
+  );
+  const dossiers = new Map(dossierRows.map((r) => [r.lead_id, r]));
 
   const statusLabel = (s: Lead["status"]) => niche.statusLabels[s];
 
@@ -29,6 +36,7 @@ export async function renderLeads(env: Env): Promise<string> {
     { h: "Fecha", w: "94px", cell: (l) => `<span class="text-dim">${new Date(l.created_at).toLocaleDateString("es-MX")}</span>` },
     { h: "Nombre", w: "minmax(120px,1.1fr)", cell: (l) => `<span class="text-cream" style="display:flex;align-items:center;gap:7px"><i data-lucide="chevron-right" width="13" height="13" class="chev" style="flex:none;transition:transform .12s ease"></i>${esc(l.name) || "(sin nombre)"}</span>` },
     { h: "Contacto", w: "minmax(110px,1fr)", cell: (l) => `<span class="text-muted">${esc(l.contact) || "—"}</span>` },
+    { h: "Readiness", w: "minmax(110px,1fr)", cell: (l) => { const d=dossiers.get(l.id); return `<span style="color:${(d?.score ?? 0)>=60?"var(--accent)":"var(--muted)"}">${d ? `${d.score}/100 · ${(d.tags ?? "warm").split(',').slice(-2).join(' · ')}` : "Por calificar"}</span>`; } },
   ];
   if (niche.columns.length) {
     for (const c of niche.columns) {
@@ -56,6 +64,7 @@ export async function renderLeads(env: Env): Promise<string> {
   const rows = list
     .map((l) => {
       const meta = leadMetadata(l);
+      const dossier = dossiers.get(l.id);
       const fullDate = new Date(l.created_at).toLocaleString("es-MX");
       const convLink = l.conversation_id
         ? `<a href="/admin/conversations?c=${encodeURIComponent(l.conversation_id)}" class="text-accent" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;text-decoration:none">
@@ -74,6 +83,7 @@ export async function renderLeads(env: Env): Promise<string> {
         <div class="lead-detail" style="display:none;padding:4px 18px 20px 18px;background:var(--bg)">
           <div style="max-width:760px;display:flex;flex-direction:column;gap:14px;padding-top:14px">
             ${metaRows ? `<div><div style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Datos</div><div style="display:flex;flex-wrap:wrap;gap:6px 18px">${metaRows}</div></div>` : ""}
+            ${dossier ? `<div style="display:grid;grid-template-columns:110px 1fr;gap:10px;border:1px solid var(--line);background:var(--panel);padding:12px"><div><div style="font-family:'Space Grotesk';font-size:25px;color:var(--accent)">${dossier.score}<span style="font-size:10px;color:var(--dim)"> /100</span></div><div style="font-size:9px;color:var(--dim);letter-spacing:.12em">READINESS</div></div><div><b style="font-size:11px">Siguiente acción</b><div class="text-muted" style="font-size:12px;margin-top:3px">${esc(dossier.next_action || "Revisar perfil")}</div><div class="text-dim" style="font-size:10px;margin-top:5px">${esc(dossier.score_reason || "Sin explicación")}</div></div></div>` : ""}
             <div>
               <div style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Resumen de la IA</div>
               <div class="text-cream" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${esc(l.intent)}</div>
@@ -98,8 +108,8 @@ export async function renderLeads(env: Env): Promise<string> {
     .join("");
 
   const body = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h2 class="font-display font-semibold text-[15px] text-cream">${esc(niche.recordPlural)}</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap">
+      <div><div style="font-size:10px;color:var(--accent);letter-spacing:.16em">LEAD DOSSIERS</div><h2 class="font-display font-semibold text-[20px] text-cream" style="margin:3px 0">${esc(niche.recordPlural)}</h2><div class="text-dim" style="font-size:11px">Abre un lead para ver readiness, razón del score y próxima acción.</div></div>
       <a href="/admin/leads/export.csv" class="ghostbtn" style="display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);color:var(--muted);padding:9px 14px;font-size:12.5px;transition:all .12s ease">
         <i data-lucide="download" width="14" height="14"></i> Exportar CSV
       </a>
