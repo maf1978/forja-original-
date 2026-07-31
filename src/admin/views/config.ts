@@ -22,7 +22,7 @@ function esc(s: string): string {
   );
 }
 
-// Brand accent = orange (Horizontes retro-terminal theme). The selected card
+// Brand accent = Hawk Guru lime. The selected card
 // lights up accent; the hidden radio drives the highlight via Tailwind's `peer`
 // utilities so the whole card is clickable (it's a <label>).
 const CARD_BASE =
