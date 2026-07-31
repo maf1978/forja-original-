@@ -31,8 +31,8 @@ binding = "CATALOG"
 bucket_name = "hawk-guru-realtor-catalog"
 
 [vars]
-BOT_NAME = "Hawk Guru Realtor Suite"
-BUSINESS_NAME = "Hawk Guru Realtor Suite"
+BOT_NAME = "Jorge Cruz Leal P.A. AI Concierge"
+BUSINESS_NAME = "Jorge Cruz Leal P.A. · Real Estate Empire Group"
 BOT_LANGUAGE = "es"
 BOT_TIER = "pro"
 BOT_NICHE = "realtor"      # activates Hawk Guru Realtor Suite
