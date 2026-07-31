@@ -41,6 +41,7 @@ import { renderMejoras } from "./views/mejoras";
 import { runFlywheel, getLessons, saveLessons } from "../flywheel/detect";
 import { applySuggestion, dismissSuggestion } from "../flywheel/apply";
 import { renderLeads, exportLeadsCsv } from "./views/leads";
+import { renderPipelines } from "./views/pipelines";
 import { renderTickets } from "./views/tickets";
 import { renderConfig } from "./views/config";
 import { renderConexiones } from "./views/conexiones";
@@ -55,6 +56,8 @@ import { SettingsRepo, SETTING_KEYS, type SettingKey } from "../db/settings";
 import { CONTROLS, levelToValue } from "./control-levels";
 import { systemPromptFromEnv } from "../system-prompt";
 import { renderBusinessContext } from "../businessContext";
+import { RealtorRepo } from "../db/realtor";
+import { getNiche } from "../niches";
 
 export const adminApp = new Hono<{ Bindings: Env }>();
 
@@ -357,6 +360,18 @@ adminApp.post("/agente/tools/:name/toggle", async (c) => {
 });
 
 adminApp.get("/leads", async (c) => c.html(await renderLeads(c.env)));
+
+adminApp.get("/pipelines", async (c) => {
+  if (getNiche(c.env).id !== "realtor") return c.redirect("/admin/leads");
+  return c.html(await renderPipelines(c.env));
+});
+
+adminApp.post("/pipelines/leads/:id/stage", async (c) => {
+  if (getNiche(c.env).id !== "realtor") return c.text("No disponible", 404);
+  const form = await c.req.formData();
+  const ok = await new RealtorRepo(new Db(c.env.DB)).moveLead(c.req.param("id"), String(form.get("stage_id") ?? ""));
+  return c.redirect(ok ? "/admin/pipelines" : "/admin/pipelines?err=stage");
+});
 
 adminApp.get("/tickets", async (c) => c.html(await renderTickets(c.env)));
 

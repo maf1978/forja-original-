@@ -7,6 +7,8 @@ import { snoozeUserTool } from "./snoozeUser";
 import { captureLeadTool } from "./captureLead";
 import { scheduleAppointmentTool } from "./scheduleAppointment";
 import { catalogQueryTool } from "./catalogQuery";
+import { getNiche } from "../niches";
+import { qualifyRealEstateLeadTool } from "./qualifyRealEstateLead";
 
 export interface ToolContext {
   env: Env;
@@ -29,6 +31,9 @@ export function buildTools(ctx: ToolContext) {
   if (isPro(ctx.env)) {
     tools.scheduleAppointment = scheduleAppointmentTool(ctx.env, ctx.getConversationId);
     tools.catalogQuery = catalogQueryTool(ctx.env);
+    if (getNiche(ctx.env).id === "realtor") {
+      tools.qualifyRealEstateLead = qualifyRealEstateLeadTool(ctx.env, ctx.getConversationId);
+    }
   }
 
   return tools;

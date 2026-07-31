@@ -203,3 +203,71 @@ CREATE TABLE IF NOT EXISTS template_sends (
   UNIQUE (campaign_key, conversation_id)
 );
 CREATE INDEX IF NOT EXISTS idx_template_sends_time ON template_sends(sent_at);
+
+-- Hawk Guru Realtor Suite: canonical CRM pipelines. These are deliberately
+-- separate from the Starter lead.status enum so existing bots remain intact.
+CREATE TABLE IF NOT EXISTS realtor_pipelines (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  kind TEXT NOT NULL UNIQUE,
+  created_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS realtor_pipeline_stages (
+  id TEXT PRIMARY KEY,
+  pipeline_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  color TEXT,
+  is_closed INTEGER NOT NULL DEFAULT 0,
+  is_won INTEGER NOT NULL DEFAULT 0,
+  FOREIGN KEY (pipeline_id) REFERENCES realtor_pipelines(id) ON DELETE CASCADE,
+  UNIQUE (pipeline_id, position)
+);
+CREATE INDEX IF NOT EXISTS idx_realtor_stage_pipeline ON realtor_pipeline_stages(pipeline_id, position);
+
+CREATE TABLE IF NOT EXISTS realtor_lead_pipeline (
+  lead_id TEXT PRIMARY KEY,
+  pipeline_id TEXT NOT NULL,
+  stage_id TEXT NOT NULL,
+  score INTEGER NOT NULL DEFAULT 0,
+  score_reason TEXT,
+  source TEXT,
+  next_action TEXT,
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE,
+  FOREIGN KEY (pipeline_id) REFERENCES realtor_pipelines(id) ON DELETE CASCADE,
+  FOREIGN KEY (stage_id) REFERENCES realtor_pipeline_stages(id) ON DELETE RESTRICT
+);
+CREATE INDEX IF NOT EXISTS idx_realtor_lead_stage ON realtor_lead_pipeline(pipeline_id, stage_id, score);
+
+CREATE TABLE IF NOT EXISTS realtor_tags (
+  id TEXT PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  label TEXT NOT NULL,
+  color TEXT,
+  created_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS realtor_lead_tags (
+  lead_id TEXT NOT NULL,
+  tag_id TEXT NOT NULL,
+  source TEXT NOT NULL DEFAULT 'system',
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (lead_id, tag_id),
+  FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE,
+  FOREIGN KEY (tag_id) REFERENCES realtor_tags(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_realtor_tag_lead ON realtor_lead_tags(tag_id, lead_id);
+
+CREATE TABLE IF NOT EXISTS realtor_pipeline_events (
+  id TEXT PRIMARY KEY,
+  lead_id TEXT NOT NULL,
+  from_stage_id TEXT,
+  to_stage_id TEXT NOT NULL,
+  actor TEXT NOT NULL DEFAULT 'system',
+  note TEXT,
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_realtor_events_lead ON realtor_pipeline_events(lead_id, created_at DESC);

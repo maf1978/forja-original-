@@ -262,7 +262,11 @@ function applyNiche(item: Item, niche: NichePack | null): Item {
 
 function sidebar(activeTab: string, pro: boolean, niche: NichePack | null): string {
   const locked = (id: string) => !pro && (PRO_ONLY_TABS as readonly string[]).includes(id);
-  const sections = NAV.map((sec) => {
+  const navigation = NAV.map((section) => ({ ...section, items: [...section.items] }));
+  if (niche?.id === "realtor") {
+    navigation[1].items.splice(2, 0, { id: "pipelines", label: "Pipelines", href: "/admin/pipelines", icon: "kanban-square" });
+  }
+  const sections = navigation.map((sec) => {
     const hasActive = sec.items.some((i) => i.id === activeTab);
     const labelColor = hasActive ? "var(--accent)" : "var(--dim)";
     const items = sec.items
@@ -306,7 +310,9 @@ export function layout(opts: { title: string; activeTab: string; body: string; e
   // se asume Pro para no ocultar nada por accidente.
   const pro = opts.env ? isPro(opts.env) : true;
   const niche = opts.env ? getNiche(opts.env) : null;
-  const section = NAV.find((s) => s.items.some((i) => i.id === opts.activeTab)) ?? NAV[0];
+  const dynamicNav = NAV.map((section) => ({ ...section, items: [...section.items] }));
+  if (niche?.id === "realtor") dynamicNav[1].items.splice(2, 0, { id: "pipelines", label: "Pipelines", href: "/admin/pipelines", icon: "kanban-square" });
+  const section = dynamicNav.find((s) => s.items.some((i) => i.id === opts.activeTab)) ?? dynamicNav[0];
   const item = applyNiche(section.items.find((i) => i.id === opts.activeTab) ?? section.items[0], niche);
 
   return `<!DOCTYPE html>
