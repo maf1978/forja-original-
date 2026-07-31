@@ -35,12 +35,23 @@ export async function runRealtorIntake(input: { env: Env; db: Db; conversationId
     const normalized = text.toLowerCase();
     const operation = normalized.includes("vend") ? "seller" : normalized.includes("rent") || normalized.includes("alquil") ? "renter" : "buyer";
     await save(db, conversationId, { ...current, step: "area", operation });
-    await reply(operation === "seller" ? "Perfecto. ¿En qué zona está la propiedad que te gustaría vender?" : operation === "renter" ? "Perfecto. ¿En qué zona te gustaría rentar y qué tipo de propiedad buscas?" : "Perfecto. ¿En qué zona y qué tipo de propiedad te gustaría comprar?");
+    await sendKapsoButtons(channelUserId, operation === "seller" ? "Perfecto. ¿En qué zona está la propiedad?" : operation === "renter" ? "Perfecto. ¿En qué zona te gustaría rentar?" : "Perfecto. ¿En qué zona te gustaría comprar?", [{ id: "miami", title: "Miami" }, { id: "hialeah", title: "Hialeah" }, { id: "other-area", title: "Otra zona" }], env);
     return true;
   }
   if (current.step === "area") {
-    await save(db, conversationId, { ...current, step: "budget", area: text.trim() });
-    await reply(current.operation === "seller" ? "¿Qué rango de precio esperas o qué objetivo tienes para la venta?" : "¿Qué presupuesto o rango aproximado tienes considerado?");
+    await save(db, conversationId, { ...current, step: "property_type", area: text.trim() });
+    await sendKapsoButtons(channelUserId, "¿Qué tipo de propiedad es o buscas?", [{ id: "house", title: "Casa" }, { id: "condo", title: "Condo" }, { id: "townhome", title: "Townhome / Otro" }], env);
+    return true;
+  }
+  if (current.step === "property_type") {
+    const area = `${current.area ?? ""} · ${text.trim()}`;
+    await save(db, conversationId, { ...current, step: "budget", area });
+    const buttons = current.operation === "renter"
+      ? [{ id: "under-2k", title: "Hasta $2K" }, { id: "2-3k", title: "$2K–$3K" }, { id: "3k-plus", title: "$3K+" }]
+      : current.operation === "seller"
+        ? [{ id: "under-500k", title: "Hasta $500K" }, { id: "500-750k", title: "$500K–$750K" }, { id: "750k-plus", title: "$750K+" }]
+        : [{ id: "under-400k", title: "Hasta $400K" }, { id: "400-600k", title: "$400K–$600K" }, { id: "600k-plus", title: "$600K+" }];
+    await sendKapsoButtons(channelUserId, current.operation === "seller" ? "¿Qué rango de valor estimado tiene la propiedad?" : "¿Cuál es tu presupuesto aproximado?", buttons, env);
     return true;
   }
   if (current.step === "budget") {

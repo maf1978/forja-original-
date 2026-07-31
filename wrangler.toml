@@ -37,7 +37,7 @@ BOT_LANGUAGE = "es"
 BOT_TIER = "pro"
 BOT_NICHE = "realtor"      # activates Hawk Guru Realtor Suite
 LLM_PROVIDER = "openai"
-BUFFER_SECONDS = "15"
+BUFFER_SECONDS = "3"
 DASHBOARD_BASE_URL = "https://hawk-guru-realtor-suite.marcos-ferrero001.workers.dev"
 
 # Secrets (set with `wrangler secret put <NAME>` — never commit values):
