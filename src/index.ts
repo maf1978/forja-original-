@@ -267,6 +267,9 @@ app.route("/admin", adminApp);
 
 // Hawk Guru-only portfolio control center. It is deliberately separate from
 // the Realtor-facing /admin suite and stays behind Basic Auth.
+// Hono treats the mounted root as /hq (without the final slash), so normalize
+// the URL people naturally paste before it reaches the sub-app.
+app.get("/hq/", (c) => c.redirect("/hq", 302));
 app.route("/hq", hqApp);
 
 // Control-plane API — Bearer-guarded (CONTROL_PLANE_TOKEN) read-only sub-app
