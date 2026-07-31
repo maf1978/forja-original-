@@ -26,4 +26,11 @@ describe("Hawk Guru Control Center route", () => {
     expect(res.status).toBe(200);
     expect(await res.text()).toContain("HAWK GURU · CONTROL CENTER");
   });
+
+  it("also renders the trailing-slash URL after login", async () => {
+    const app = new Hono<{ Bindings: Env }>();
+    app.route("/hq", hqApp);
+    const res = await app.fetch(new Request("https://suite.test/hq/", { headers: header }), env());
+    expect(res.status).toBe(200);
+  });
 });

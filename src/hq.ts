@@ -31,5 +31,8 @@ async function renderControlCenter(env: Env): Promise<string> {
 export const hqApp = new Hono<{ Bindings: Env }>();
 hqApp.use("*", (c, next) => controlCenterAuth(c.env)(c, next));
 hqApp.get("/", async (c) => c.html(await renderControlCenter(c.env)));
+// When mounted by the main app, Hono distinguishes /hq from /hq/. Render the
+// same authenticated screen for the trailing-slash form people paste in URLs.
+hqApp.get("/*", async (c) => c.html(await renderControlCenter(c.env)));
 hqApp.post("/clients", async (c) => { const form = await c.req.formData(); const name = String(form.get("name") ?? "").trim().slice(0, 100); const brokerage = String(form.get("brokerage") ?? "").trim().slice(0, 120); const slug = String(form.get("slug") ?? "").trim().toLowerCase(); const plan = ["trial", "base", "pro"].includes(String(form.get("plan"))) ? String(form.get("plan")) : "trial"; if (!name || !/^[a-z0-9-]+$/.test(slug)) return c.redirect("/hq"); const now = Date.now(); await new Db(c.env.DB).run("INSERT OR IGNORE INTO managed_clients (id, name, brokerage, slug, plan, status, channel_status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'onboarding', 'pending', ?, ?)", [crypto.randomUUID(), name, brokerage || null, slug, plan, now, now]); return c.redirect("/hq"); });
 hqApp.post("/clients/:id/status", async (c) => { const form = await c.req.formData(); const status = String(form.get("status") ?? "onboarding"); const value = status === "active" || status === "paused" ? status : "onboarding"; await new Db(c.env.DB).run("UPDATE managed_clients SET status = ?, updated_at = ? WHERE id = ?", [value, Date.now(), c.req.param("id")]); return c.redirect("/hq"); });
