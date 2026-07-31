@@ -204,6 +204,14 @@ CREATE TABLE IF NOT EXISTS template_sends (
 );
 CREATE INDEX IF NOT EXISTS idx_template_sends_time ON template_sends(sent_at);
 
+-- Kapso webhook idempotency ledger. Kapso may retry events, so an event key
+-- is recorded before routing it into the conversation agent.
+CREATE TABLE IF NOT EXISTS kapso_webhook_events (
+  idempotency_key TEXT PRIMARY KEY,
+  event_name TEXT NOT NULL,
+  received_at INTEGER NOT NULL
+);
+
 -- Hawk Guru Realtor Suite: canonical CRM pipelines. These are deliberately
 -- separate from the Starter lead.status enum so existing bots remain intact.
 CREATE TABLE IF NOT EXISTS realtor_pipelines (

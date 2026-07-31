@@ -65,6 +65,11 @@ export interface Env {
   WHATSAPP_ACCESS_TOKEN?: string;     // token del system user / WABA (Bearer)
   WHATSAPP_VERIFY_TOKEN?: string;     // handshake GET del webhook (si falta, usa META_VERIFY_TOKEN)
   WHATSAPP_APP_SECRET?: string;       // firma X-Hub-Signature-256 (si falta, usa META_APP_SECRET)
+  // Kapso WhatsApp BSP. El webhook valida este secreto y el adaptador usa la
+  // API key/project phone number para enviar respuestas por Kapso.
+  KAPSO_API_KEY?: string;
+  KAPSO_PHONE_NUMBER_ID?: string;
+  KAPSO_WEBHOOK_SECRET?: string;
   XAI_API_KEY?: string;             // xAI (Grok) — proveedor LLM alterno (ver src/llm/provider.ts)
 
   // ── Cal.com (agenda real para scheduleAppointment) ───────────────────────

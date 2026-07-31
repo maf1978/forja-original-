@@ -3,6 +3,7 @@ import type { Env } from "../env";
 import { telegramAdapter } from "../channels/telegram";
 import { manychatAdapter } from "../channels/manychat";
 import { twilioAdapter } from "../channels/twilio";
+import { kapsoAdapter } from "../channels/kapso";
 import { metaAdapter } from "../channels/meta";
 import { whatsappAdapter } from "../channels/whatsapp";
 
@@ -39,6 +40,7 @@ export function pickAdapter(channel: ChannelId): ChannelAdapter {
   if (channel === "telegram") return telegramAdapter;
   if (channel === "manychat") return manychatAdapter;
   if (channel === "twilio") return twilioAdapter;
+  if (channel === "kapso") return kapsoAdapter;
   if (channel === "whatsapp") return whatsappAdapter;
   if (channel === "messenger" || channel === "instagram") return metaAdapter;
   throw new Error(`unknown channel: ${channel}`);

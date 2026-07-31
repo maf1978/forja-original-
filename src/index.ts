@@ -6,6 +6,7 @@ import { manychatAdapter } from "./channels/manychat";
 import { twilioAdapter } from "./channels/twilio";
 import { parseMetaEvents, verifyMetaSignature } from "./channels/meta";
 import { parseWhatsAppEvents, serveWhatsAppMedia } from "./channels/whatsapp";
+import { parseKapsoMessage } from "./channels/kapso";
 import { adminApp } from "./admin/routes";
 import { purgeOldMessages } from "./crons/purgeOldMessages";
 import { reindexKb } from "./kb/reindex";
@@ -161,6 +162,53 @@ app.post("/webhooks/whatsapp", async (c) => {
     await c.env.AGENT.get(doId).ingest(msg);
   }
   return c.text("EVENT_RECEIVED", 200);
+});
+
+// --- Kapso WhatsApp ---------------------------------------------------------
+// Kapso signs the raw JSON payload with HMAC SHA-256. The idempotency ledger
+// prevents provider retries (including buffered batches) from duplicating a
+// customer turn or creating duplicate CRM activity.
+async function kapsoSignature(raw: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const bytes = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(raw)));
+  return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function sameSignature(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+app.post("/webhooks/kapso", async (c) => {
+  const secret = c.env.KAPSO_WEBHOOK_SECRET;
+  if (!secret) return c.text("Kapso webhook not configured", 503);
+  const raw = await c.req.text();
+  const supplied = c.req.header("x-webhook-signature") ?? "";
+  const expected = await kapsoSignature(raw, secret);
+  if (!sameSignature(expected, supplied)) return c.text("bad signature", 403);
+  let body: any;
+  try { body = JSON.parse(raw); } catch { return c.text("bad json", 400); }
+  const event = c.req.header("x-webhook-event") ?? body.event ?? "";
+  if (event !== "whatsapp.message.received") return c.text("ok", 200);
+  const baseKey = c.req.header("x-idempotency-key") ?? crypto.randomUUID();
+  const batched = c.req.header("x-webhook-batch") === "true" || body.batch === true;
+  const entries = batched ? (Array.isArray(body.data) ? body.data : []) : [body.data ?? body];
+  const db = new Db(c.env.DB);
+  for (let index = 0; index < entries.length; index++) {
+    const key = entries.length > 1 ? `${baseKey}:${index}` : baseKey;
+    try {
+      await db.run("INSERT INTO kapso_webhook_events (idempotency_key, event_name, received_at) VALUES (?, ?, ?)", [key, event, Date.now()]);
+    } catch {
+      continue;
+    }
+    const msg = parseKapsoMessage(entries[index]);
+    if (!msg) continue;
+    const doId = c.env.AGENT.idFromName(`${msg.channel}:${msg.channelUserId}`);
+    await c.env.AGENT.get(doId).ingest(msg);
+  }
+  return c.text("ok", 200);
 });
 
 // Proxy FIRMADO del media entrante de WhatsApp Cloud (audio/imagen). Hace el

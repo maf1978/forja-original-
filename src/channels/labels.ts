@@ -8,6 +8,7 @@ import type { Env } from "../env";
 /** channel id (as stored in conversations.channel) → label the owner reads. */
 export const CHANNEL_LABELS: Record<string, string> = {
   twilio: "WhatsApp",
+  kapso: "WhatsApp (Kapso)",
   whatsapp: "WhatsApp", // legacy rows
   telegram: "Telegram",
   instagram: "Instagram",
