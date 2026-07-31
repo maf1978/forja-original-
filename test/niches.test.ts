@@ -20,6 +20,12 @@ describe("getNiche", () => {
   it("normaliza mayúsculas/espacios al resolver el pack", () => {
     expect(getNiche(envWith("  GENERICO ")).id).toBe("generico");
   });
+
+  it("resuelve Realtor Suite y aporta su playbook", () => {
+    const niche = getNiche(envWith("realtor"));
+    expect(niche.recordPlural).toBe("Prospectos");
+    expect(niche.playbook).toContain("inmobiliario");
+  });
 });
 
 describe("dashboard (nav genérico)", () => {
