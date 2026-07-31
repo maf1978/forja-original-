@@ -50,7 +50,7 @@ export async function runRealtorIntake(input: { env: Env; db: Db; conversationId
       ? [{ id: "under-2k", title: "Hasta $2K" }, { id: "2-3k", title: "$2K–$3K" }, { id: "3k-plus", title: "$3K+" }]
       : current.operation === "seller"
         ? [{ id: "under-500k", title: "Hasta $500K" }, { id: "500-750k", title: "$500K–$750K" }, { id: "750k-plus", title: "$750K+" }]
-        : [{ id: "under-400k", title: "Hasta $400K" }, { id: "400-600k", title: "$400K–$600K" }, { id: "600k-plus", title: "$600K+" }];
+        : [{ id: "0-300k", title: "$0–$300K" }, { id: "300-500k", title: "$300K–$500K" }, { id: "500-750k", title: "$500K–$750K" }];
     await sendKapsoButtons(channelUserId, current.operation === "seller" ? "¿Qué rango de valor estimado tiene la propiedad?" : "¿Cuál es tu presupuesto aproximado?", buttons, env);
     return true;
   }
