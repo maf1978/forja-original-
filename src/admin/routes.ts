@@ -42,6 +42,7 @@ import { runFlywheel, getLessons, saveLessons } from "../flywheel/detect";
 import { applySuggestion, dismissSuggestion } from "../flywheel/apply";
 import { renderLeads, exportLeadsCsv } from "./views/leads";
 import { renderPipelines } from "./views/pipelines";
+import { renderQualification } from "./views/qualification";
 import { renderTickets } from "./views/tickets";
 import { renderConfig } from "./views/config";
 import { renderConexiones } from "./views/conexiones";
@@ -57,6 +58,7 @@ import { CONTROLS, levelToValue } from "./control-levels";
 import { systemPromptFromEnv } from "../system-prompt";
 import { renderBusinessContext } from "../businessContext";
 import { RealtorRepo } from "../db/realtor";
+import { scoreRealEstateLead } from "../tools/qualifyRealEstateLead";
 import { getNiche } from "../niches";
 
 export const adminApp = new Hono<{ Bindings: Env }>();
@@ -374,6 +376,40 @@ adminApp.post("/pipelines/leads/:id/stage", async (c) => {
 });
 
 adminApp.get("/tickets", async (c) => c.html(await renderTickets(c.env)));
+
+adminApp.get("/qualification", (c) => c.html(renderQualification(c.env)));
+
+adminApp.post("/qualification", async (c) => {
+  const form = await c.req.formData();
+  const operation = String(form.get("operation") ?? "");
+  if (operation !== "buyer" && operation !== "seller" && operation !== "renter") return c.redirect("/admin/qualification");
+  const area = String(form.get("area") ?? "").trim();
+  const timeline = String(form.get("timeline") ?? "").trim();
+  const readiness = String(form.get("readiness") ?? "");
+  const nextStep = String(form.get("next_step") ?? "");
+  const score = scoreRealEstateLead({
+    operation, area, timeline,
+    budget: String(form.get("budget") ?? "").trim() || undefined,
+    name: String(form.get("name") ?? "").trim() || undefined,
+    contact: String(form.get("contact") ?? "").trim() || undefined,
+    readiness: ["ready", "needs-guidance", "valuation", "move-in-ready", "exploring"].includes(readiness) ? readiness as any : undefined,
+    nextStep: ["call", "appointment", "whatsapp", "questions"].includes(nextStep) ? nextStep as any : undefined,
+    preapproved: operation === "buyer" && readiness === "ready",
+    cashBuyer: false,
+  });
+  const leadId = await new LeadsRepo(new Db(c.env.DB)).create({
+    conversationId: null, channelUserId: null,
+    name: String(form.get("name") ?? "").trim() || undefined,
+    contact: String(form.get("contact") ?? "").trim() || undefined,
+    intent: `${operation}: ${area}`,
+    notes: `Readiness quiz · ${score.reason}`,
+    metadata: { operation, area, budget: String(form.get("budget") ?? "").trim() || null, timeline, readiness, nextStep },
+  });
+  await new RealtorRepo(new Db(c.env.DB)).attachLead({
+    leadId, kind: operation, score: score.score, reason: score.reason, source: "readiness-quiz", nextAction: score.nextAction, tags: score.tags,
+  });
+  return c.html(renderQualification(c.env, { score: String(score.score), tags: score.tags.join(", "), next: score.nextAction }));
+});
 
 // Conexiones: mapa de canales con estado verde/gris (paso 4 del onboarding).
 adminApp.get("/conexiones", (c) => c.html(renderConexiones(c.env)));

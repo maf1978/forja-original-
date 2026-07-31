@@ -14,6 +14,8 @@ const inputSchema = z.object({
   timeline: z.string().optional(),
   preapproved: z.boolean().optional(),
   cashBuyer: z.boolean().optional(),
+  readiness: z.enum(["ready", "needs-guidance", "valuation", "move-in-ready", "exploring"]).optional(),
+  nextStep: z.enum(["call", "appointment", "whatsapp", "questions"]).optional(),
   notes: z.string().optional(),
   source: z.string().optional(),
 });
@@ -28,12 +30,17 @@ export function scoreRealEstateLead(input: z.infer<typeof inputSchema>): { score
   if (input.timeline) { score += 10; reasons.push("plazo compartido"); }
   if (input.preapproved) { score += 20; tags.push("preapproved"); reasons.push("preaprobación confirmada"); }
   if (input.cashBuyer) { score += 20; tags.push("cash-buyer"); reasons.push("compra de contado"); }
+  if (input.timeline?.includes("0-30")) { score += 15; tags.push("0-30-days"); reasons.push("plazo de 0-30 días"); }
+  if (input.readiness === "ready") { score += 20; reasons.push("listo para avanzar"); }
+  if (input.readiness === "valuation") { score += 20; tags.push("valuation-requested"); reasons.push("solicita valoración"); }
+  if (input.readiness === "move-in-ready") { score += 20; tags.push("move-in-ready"); reasons.push("fecha de mudanza definida"); }
+  if (input.nextStep === "call" || input.nextStep === "appointment") { score += 20; tags.push("appointment-requested"); reasons.push("solicita conversación"); }
   const hot = score >= 60;
   tags.push(hot ? "hot" : "warm");
   return {
     score: Math.min(score, 100), tags,
     reason: reasons.join(" · "),
-    nextAction: hot ? "Contactar hoy para agendar la siguiente conversación." : "Completar presupuesto, zona y fecha objetivo.",
+    nextAction: input.nextStep === "appointment" ? "Contactar hoy para coordinar la cita solicitada." : hot ? "Contactar hoy para agendar la siguiente conversación." : "Completar presupuesto, zona y fecha objetivo.",
   };
 }
 

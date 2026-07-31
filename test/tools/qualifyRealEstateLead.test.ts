@@ -9,4 +9,16 @@ describe("scoreRealEstateLead", () => {
     expect(result.tags).toContain("hot");
     expect(result.tags).toContain("preapproved");
   });
+
+  it("adds quiz readiness and appointment signals to the score", () => {
+    const result = scoreRealEstateLead({
+      operation: "seller", area: "Doral", timeline: "0-30 días",
+      readiness: "valuation", nextStep: "appointment",
+    });
+    expect(result.score).toBeGreaterThanOrEqual(60);
+    expect(result.tags).toContain("valuation-requested");
+    expect(result.tags).toContain("appointment-requested");
+    expect(result.tags).toContain("0-30-days");
+    expect(result.nextAction).toContain("cita");
+  });
 });
