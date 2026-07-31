@@ -49,6 +49,12 @@ export function qualifyRealEstateLeadTool(env: Env, getConversationId: () => str
     description: "Califica un prospecto inmobiliario y lo registra en el pipeline de buyer, seller o renter con score y tags automáticos. Úsala solo cuando el cliente expresa intención real.",
     inputSchema,
     execute: async (input) => {
+      if (!input.name?.trim() || !input.contact?.trim()) {
+        return {
+          qualified: false,
+          message: "Antes de calificar el prospecto, confirma su nombre y teléfono de contacto.",
+        };
+      }
       const db = new Db(env.DB);
       const leads = new LeadsRepo(db);
       const scored = scoreRealEstateLead(input);

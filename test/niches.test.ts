@@ -25,6 +25,8 @@ describe("getNiche", () => {
     const niche = getNiche(envWith("realtor"));
     expect(niche.recordPlural).toBe("Prospectos");
     expect(niche.playbook).toContain("inmobiliario");
+    expect(niche.playbook).toContain("NOMBRE");
+    expect(niche.playbook).toContain("UNA sola pregunta por mensaje");
   });
 });
 
