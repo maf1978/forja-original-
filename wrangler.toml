@@ -1,7 +1,7 @@
 # Member replaces {{BOT_SLUG}} via the skill /configurar-mi-chatbot.
 # DO NOT commit member-specific values to git.
 
-name = "horizontes-bot-{{BOT_SLUG}}"
+name = "hawk-guru-realtor-suite"
 main = "src/index.ts"
 compatibility_date = "2026-05-01"
 compatibility_flags = ["nodejs_compat"]
@@ -19,16 +19,16 @@ new_sqlite_classes = ["SupportAgent"]
 
 [[d1_databases]]
 binding = "DB"
-database_name = "horizontes_bot_db"
-database_id = "{{D1_DATABASE_ID}}"  # filled in by skill at deploy time
+database_name = "hawk_guru_realtor_db"
+database_id = "12ee9815-62fd-422d-9fe3-190f9ccc66d7"
 
 [[vectorize]]
 binding = "KB"
-index_name = "horizontes_bot_kb"
+index_name = "hawk-guru-realtor-kb"
 
 [[r2_buckets]]
 binding = "CATALOG"
-bucket_name = "horizontes-bot-catalog-{{BOT_SLUG}}"
+bucket_name = "hawk-guru-realtor-catalog"
 
 [vars]
 BOT_NAME = "{{BOT_NAME}}"

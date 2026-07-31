@@ -12,8 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:apply": "wrangler d1 execute horizontes_bot_db --file=src/db/schema.sql",
-    "db:apply:remote": "wrangler d1 execute horizontes_bot_db --file=src/db/schema.sql --remote",
+    "db:apply": "wrangler d1 execute hawk_guru_realtor_db --file=src/db/schema.sql",
+    "db:apply:remote": "wrangler d1 execute hawk_guru_realtor_db --file=src/db/schema.sql --remote",
     "kb:reindex": "tsx scripts/generate-fixtures.ts",
     "eval": "tsx scripts/eval-bot-live.ts"
   },
