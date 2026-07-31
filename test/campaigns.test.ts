@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { createTestMiniflare } from "./helpers/miniflareSetup";
 import { Db } from "../src/db/client";
 import { ConversationsRepo } from "../src/db/conversations";
+import { LeadsRepo } from "../src/db/leads";
+import { RealtorRepo } from "../src/db/realtor";
 
 // Capturamos free-forms sin red
 const freeformSends = vi.hoisted(() => [] as { userId: string; text: string }[]);
@@ -55,42 +57,37 @@ beforeEach(async () => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("segments", () => {
-  it("quiero_sin_click y click_oferta parten bien la audiencia", async () => {
-    const a = await seedConv("+521111", NOW - 2 * H); // QUIERO sin click, en ventana
-    const b = await seedConv("+522222", NOW - 2 * H); // QUIERO + click
+  it("segmenta buyer y sellers usando el pipeline Realtor", async () => {
+    const a = await seedConv("+521111", NOW - 2 * H);
+    const b = await seedConv("+522222", NOW - 2 * H);
     await seedConv("+523333", NOW - 30 * H); // solo conversó, fuera de ventana
-    await db.run(
-      "INSERT INTO keyword_hits (keyword, conversation_id, phase, created_at) VALUES ('QUIERO', ?, 'live', ?), ('QUIERO', ?, 'live', ?)",
-      [a.id, NOW, b.id, NOW],
-    );
-    await db.run(
-      "INSERT INTO tracked_links (code, conversation_id, target, target_url, created_at, clicks) VALUES ('abc1234', ?, 'oferta', 'https://x.dev', ?, 3)",
-      [b.id, NOW],
-    );
+    const leads = new LeadsRepo(db);
+    const realtor = new RealtorRepo(db);
+    const buyerLead = await leads.create({ conversationId: a.id, channelUserId: "+521111", intent: "buyer" });
+    const sellerLead = await leads.create({ conversationId: b.id, channelUserId: "+522222", intent: "seller" });
+    await realtor.attachLead({ leadId: buyerLead, kind: "buyer", score: 70, reason: "test", source: "test", nextAction: "call", tags: ["buyer", "hot"] });
+    await realtor.attachLead({ leadId: sellerLead, kind: "seller", score: 40, reason: "test", source: "test", nextAction: "call", tags: ["seller", "warm"] });
 
-    const sinClick = await segmentMembers(db, "quiero_sin_click", NOW);
-    expect(sinClick.map((m) => m.channelUserId)).toEqual(["+521111"]);
-    expect(sinClick[0].inWindow).toBe(true);
+    const buyers = await segmentMembers(db, "buyer_ready", NOW);
+    expect(buyers.map((m) => m.channelUserId)).toEqual(["+521111"]);
+    expect(buyers[0].inWindow).toBe(true);
 
-    const conClick = await segmentMembers(db, "click_oferta", NOW);
-    expect(conClick.map((m) => m.channelUserId)).toEqual(["+522222"]);
+    const sellers = await segmentMembers(db, "seller_valuation", NOW);
+    expect(sellers.map((m) => m.channelUserId)).toEqual(["+522222"]);
 
     const todos = await segmentCounts(db, NOW);
-    const t = todos.find((s) => s.id === "todos")!;
+    const t = todos.find((s) => s.id === "all_conversations")!;
     expect(t.total).toBe(3);
     expect(t.inWindow).toBe(2);
     expect(t.outWindow).toBe(1);
   });
 
-  it("segmentos por etiqueta (calientes / objeción precio)", async () => {
+  it("segmenta prioridad hot desde las etiquetas Realtor", async () => {
     const a = await seedConv("+524444", NOW - 1 * H);
-    await db.run(
-      "INSERT INTO conv_labels (conversation_id, variant, interest, objection, summary, labeled_at) VALUES (?, 'directo', 'caliente', 'precio', 'quiere entrar', ?)",
-      [a.id, NOW],
-    );
-    expect((await segmentMembers(db, "calientes", NOW)).length).toBe(1);
-    expect((await segmentMembers(db, "objecion_precio", NOW)).length).toBe(1);
-    expect((await segmentMembers(db, "tibios", NOW)).length).toBe(0);
+    const lead = await new LeadsRepo(db).create({ conversationId: a.id, channelUserId: "+524444", intent: "buyer" });
+    await new RealtorRepo(db).attachLead({ leadId: lead, kind: "buyer", score: 80, reason: "test", source: "test", nextAction: "call", tags: ["buyer", "hot"] });
+    expect((await segmentMembers(db, "hot", NOW)).length).toBe(1);
+    expect((await segmentMembers(db, "warm", NOW)).length).toBe(0);
   });
 });
 
@@ -100,7 +97,7 @@ describe("sendCampaign", () => {
     await seedConv("+523333", NOW - 30 * H); // fuera
 
     const r1 = await sendCampaign(env, {
-      segmentId: "todos",
+      segmentId: "all_conversations",
       campaignKey: "test-camp",
       freeformText: "hola en ventana",
       template: { sid: "HX123", body: "Hola {{1}}, ¿vienes hoy? Responde SÍ", variables: { "1": "crack" } },
@@ -122,7 +119,7 @@ describe("sendCampaign", () => {
 
     // Reintento: mismo campaignKey → todos saltados
     const r2 = await sendCampaign(env, {
-      segmentId: "todos",
+      segmentId: "all_conversations",
       campaignKey: "test-camp",
       freeformText: "hola en ventana",
       template: { sid: "HX123" },
@@ -137,7 +134,7 @@ describe("sendCampaign", () => {
     await seedConv("+526666", NOW - 40 * H);
     const r = await sendCampaign(
       { ...env, WA_DAILY_TEMPLATE_CAP: "1" },
-      { segmentId: "todos", campaignKey: "cap-test", template: { sid: "HX9" }, now: NOW },
+      { segmentId: "all_conversations", campaignKey: "cap-test", template: { sid: "HX9" }, now: NOW },
     );
     expect(r.sentTemplate).toBe(1);
     expect(r.skippedQuota).toBe(1);
@@ -146,7 +143,7 @@ describe("sendCampaign", () => {
   it("sin plantilla dada, los de fuera de ventana no reciben nada", async () => {
     await seedConv("+527777", NOW - 30 * H);
     const r = await sendCampaign(env, {
-      segmentId: "todos",
+      segmentId: "all_conversations",
       campaignKey: "solo-ff",
       freeformText: "hola",
       now: NOW,

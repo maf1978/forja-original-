@@ -6,7 +6,7 @@
 import type { Env } from "../../env";
 import { Db } from "../../db/client";
 import { layout } from "./layout";
-import { SEGMENTS, segmentCounts } from "../../segments";
+import { REALTOR_FOLLOW_UP_COPY, SEGMENTS, segmentCounts } from "../../segments";
 import {
   listContentTemplates,
   templatesSentLast24h,
@@ -72,6 +72,8 @@ export async function renderCampanas(
       </label>`;
     })
     .join("");
+
+  const copyBySegment = JSON.stringify(REALTOR_FOLLOW_UP_COPY).replace(/</g, "\\u003c");
 
   const templateOpts =
     templates.length > 0
@@ -139,12 +141,21 @@ export async function renderCampanas(
       <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin:18px 0 8px" class="text-dim">2 · Mensaje free-form (para los EN ventana)</div>
       <textarea name="freeform_text" rows="3" placeholder="Se manda tal cual a quienes escribieron hace <23h. Déjalo vacío para no mandarles nada."
         style="width:100%;background:var(--panel);border:1px solid var(--line);color:inherit;padding:10px 12px;font-size:12.5px"></textarea>
+      <div style="margin-top:8px;border:1px solid var(--line);background:var(--raise);padding:10px 12px">
+        <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase" class="text-dim">Copy Realtor recomendado</div>
+        <div id="realtor-copy-freeform" style="font-size:12px;line-height:1.45;margin-top:5px"></div>
+        <button type="button" id="use-realtor-copy" class="btn" style="margin-top:8px;padding:6px 10px;font-size:11px;cursor:pointer">Usar este mensaje</button>
+      </div>
 
       <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin:18px 0 8px" class="text-dim">3 · Plantilla HSM (para los FUERA de ventana)</div>
       ${templateSection}
+      <div style="margin-top:8px;border-left:2px solid var(--accent);padding:8px 10px" class="text-dim">
+        <b style="color:inherit">Borrador HSM para Meta:</b> <span id="realtor-copy-template"></span>
+        <div style="font-size:11px;margin-top:4px">Crea este texto como plantilla aprobada en Twilio. Usa <span class="font-mono">{{1}}</span> para el nombre; no se envía hasta que selecciones una plantilla aprobada arriba.</div>
+      </div>
 
       <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin:18px 0 8px" class="text-dim">4 · Nombre de la campaña (candado anti-duplicados)</div>
-      <input name="campaign_key" required placeholder="ej: deadline-bonos-26jul" class="font-mono"
+      <input name="campaign_key" required placeholder="ej: buyer-followup-2026-07-31" class="font-mono"
         style="width:100%;background:var(--panel);border:1px solid var(--line);color:inherit;padding:9px 10px;font-size:12px">
       <div class="text-dim" style="font-size:11px;margin-top:4px">
         Si reintentas una campaña con el mismo nombre, a nadie le llega dos veces.
@@ -155,6 +166,31 @@ export async function renderCampanas(
       </button>
       <span class="text-dim" style="font-size:11px;margin-left:10px">Puede tardar ~1 min con audiencias grandes.</span>
     </form>
+
+    <script>
+      (() => {
+        const copy = ${copyBySegment};
+        const freeform = document.querySelector('textarea[name="freeform_text"]');
+        const key = document.querySelector('input[name="campaign_key"]');
+        const preview = document.getElementById('realtor-copy-freeform');
+        const template = document.getElementById('realtor-copy-template');
+        const refresh = () => {
+          const selected = document.querySelector('input[name="segment"]:checked');
+          const item = selected && copy[selected.value];
+          if (!item) return;
+          preview.textContent = item.freeform;
+          template.textContent = item.template;
+          if (key && !key.value) key.placeholder = 'ej: ' + item.campaignKeyHint;
+        };
+        document.querySelectorAll('input[name="segment"]').forEach((el) => el.addEventListener('change', refresh));
+        document.getElementById('use-realtor-copy')?.addEventListener('click', () => {
+          const selected = document.querySelector('input[name="segment"]:checked');
+          const item = selected && copy[selected.value];
+          if (item && freeform) freeform.value = item.freeform;
+        });
+        refresh();
+      })();
+    </script>
 
     <div>
       <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px" class="text-dim">Historial</div>
