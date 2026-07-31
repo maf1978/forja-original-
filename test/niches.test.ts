@@ -28,12 +28,12 @@ describe("getNiche", () => {
   });
 });
 
-describe("dashboard (nav genérico)", () => {
+describe("dashboard (nav Realtor Suite)", () => {
   const page = (niche?: string) => layout({ title: "T", activeTab: "leads", body: "x", env: envWith(niche) });
 
-  it("genérico: el nav dice 'Leads'", () => {
+  it("mantiene la ruta de leads con etiqueta Realtor", () => {
     const html = page(undefined);
-    expect(html).toContain("Leads");
+    expect(html).toContain("Prospectos");
     expect(html).toContain('href="/admin/leads"');
   });
 });

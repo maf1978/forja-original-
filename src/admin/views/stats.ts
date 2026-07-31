@@ -231,5 +231,5 @@ export async function renderStats(env: Env): Promise<string> {
       </div>
     </div>`;
 
-  return layout({ title: "Estadísticas", activeTab: "stats", body, env });
+  return layout({ title: "Conversion Intel", activeTab: "stats", body, env });
 }

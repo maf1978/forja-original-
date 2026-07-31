@@ -93,7 +93,7 @@ export async function renderKbList(
       </form>
     </div>`;
 
-  return layout({ title: "Conocimiento", activeTab: "kb", body, env });
+  return layout({ title: "Market Intel", activeTab: "kb", body, env });
 }
 
 export function renderKbEditor(doc: KbDoc | null, env: Env): string {

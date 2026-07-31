@@ -162,7 +162,7 @@ export async function renderOverview(env: Env): Promise<string> {
     <div class="card bg-panel border border-line p-[18px] flex flex-col" style="animation-delay:.26s">
       <div class="font-display font-semibold text-[15px] text-cream flex items-center gap-2 mb-3.5">
         <i data-lucide="activity" width="16" height="16" class="text-accent"></i>
-        Estado del agente
+        Estado del AI Concierge
       </div>
       <div class="flex flex-col gap-[11px] text-[12.5px]">
         <div class="flex items-center justify-between">
@@ -171,12 +171,12 @@ export async function renderOverview(env: Env): Promise<string> {
         </div>
         <div style="height:1px;background:var(--line)"></div>
         <div class="flex items-center justify-between">
-          <span class="text-muted">Tools activas</span>
+          <span class="text-muted">Acciones activas</span>
           <span class="font-semibold">${agentCfg.enabledToolNames.length} <span class="text-dim font-normal">de ${toolNames.length}</span></span>
         </div>
         <div style="height:1px;background:var(--line)"></div>
         <div class="flex items-center justify-between">
-          <span class="text-muted">Docs de conocimiento</span>
+          <span class="text-muted">Market Intel</span>
           <span class="font-semibold">${totalKbDocs} <span class="text-dim font-normal">(${FIXTURE_CHUNKS.length} precargados)</span></span>
         </div>
         <div style="height:1px;background:var(--line)"></div>
@@ -187,7 +187,7 @@ export async function renderOverview(env: Env): Promise<string> {
       </div>
       <a href="/admin/agente" class="bigbtn font-display font-bold text-[12.5px] cursor-pointer flex items-center justify-center gap-2"
          style="background:var(--accent);color:#1a1206;border:1px solid var(--accent);box-shadow:4px 4px 0 var(--linelit);padding:13px;margin-top:18px">
-        <i data-lucide="settings-2" width="16" height="16"></i> Ajustar mi agente
+        <i data-lucide="settings-2" width="16" height="16"></i> Configurar AI Concierge
       </a>
     </div>`;
 
@@ -221,7 +221,7 @@ export async function renderOverview(env: Env): Promise<string> {
       <div class="flex items-center justify-between" style="padding:16px 18px 12px">
         <div class="font-display font-semibold text-[15px] text-cream flex items-center gap-2">
           <i data-lucide="messages-square" width="16" height="16" class="text-accent"></i>
-          Conversaciones recientes
+          Inbox reciente
         </div>
         <a href="/admin/conversations" class="flex items-center gap-1 text-[11.5px]">ver todas <i data-lucide="arrow-right" width="13" height="13"></i></a>
       </div>
@@ -243,10 +243,10 @@ export async function renderOverview(env: Env): Promise<string> {
     <div class="card bg-panel border border-line p-[18px] relative overflow-hidden" style="animation-delay:.34s;background:linear-gradient(160deg,var(--panel2),var(--panel));border-color:var(--linelit)">
       <div class="flex items-center gap-2 mb-1">
         <i data-lucide="sparkles" width="16" height="16" class="text-accent2"></i>
-        <span class="font-display font-semibold text-[15px] text-cream">Mejoras sugeridas</span>
+        <span class="font-display font-semibold text-[15px] text-cream">Training Lab</span>
       </div>
       <div class="text-[11px] text-dim mb-3.5">
-        ${proposedSuggestions.length} ${proposedSuggestions.length === 1 ? "sugerencia detectada" : "sugerencias detectadas"} por IA sobre tus conversaciones
+        ${proposedSuggestions.length} ${proposedSuggestions.length === 1 ? "oportunidad detectada" : "oportunidades detectadas"} para mejorar conversión y seguimiento
       </div>
       ${suggestionItems}
       <a href="/admin/mejoras" class="flex items-center gap-1 text-[11.5px] mt-2.5">ver todas <i data-lucide="arrow-right" width="13" height="13"></i></a>
@@ -269,7 +269,7 @@ export async function renderOverview(env: Env): Promise<string> {
           <div class="absolute top-3 right-3 text-[9.5px] tracking-[.2em] text-dim uppercase">02</div>
           <div class="flex items-center gap-2 text-muted">
             <i data-lucide="users" width="15" height="15"></i>
-            <span class="text-[11px] tracking-[.05em]">CLIENTES ÚNICOS</span>
+            <span class="text-[11px] tracking-[.05em]">CONVERSACIONES ACTIVAS</span>
           </div>
           <div class="glow font-display font-bold text-[38px] leading-none mt-3">${todayConvs}</div>
           <div class="text-[11px] text-dim mt-2">conversaciones distintas hoy</div>
@@ -289,10 +289,10 @@ export async function renderOverview(env: Env): Promise<string> {
           <div class="absolute top-3 right-3 text-[9.5px] tracking-[.2em] text-dim uppercase">04</div>
           <div class="flex items-center gap-2 text-muted">
             <i data-lucide="coins" width="15" height="15"></i>
-            <span class="text-[11px] tracking-[.05em]">COSTO DEL MES</span>
+            <span class="text-[11px] tracking-[.05em]">AI SPEND · MES</span>
           </div>
           <div class="glow font-display font-bold text-[38px] leading-none mt-3">$${totalCost.toFixed(2)}</div>
-          <div class="text-[11px] text-dim mt-2">${monthMsgs} mensajes · Claude · 30 días</div>
+          <div class="text-[11px] text-dim mt-2">${monthMsgs} mensajes · IA · 30 días</div>
         </div>
       </section>
 
@@ -300,7 +300,7 @@ export async function renderOverview(env: Env): Promise<string> {
         <div class="flex items-center justify-between">
           <div class="font-display font-semibold text-[15px] text-cream flex items-center gap-2">
             <i data-lucide="activity" width="16" height="16" class="text-accent"></i>
-            Salud del bot
+            Salud de operación
           </div>
           <a href="/admin/tickets" class="flex items-center gap-1 text-[11.5px]">
             ver tickets <i data-lucide="arrow-right" width="13" height="13"></i>
@@ -317,8 +317,8 @@ export async function renderOverview(env: Env): Promise<string> {
             // fallaba en silencio; ahora se ve aquí en rojo si falta configurar.
             const notify = handoffNotifyStatus(env);
             return notify.ok
-              ? `<span style="font-size:9px;color:var(--ok);border:1px solid var(--ok);padding:1px 6px">✓ handoff avisa por ${notify.channels.join(" + ")}</span>`
-              : `<span style="font-size:9px;color:var(--bad);border:1px solid var(--bad);padding:1px 6px">⚠ HANDOFF SIN AVISO — el bot crea tickets pero NADIE recibe notificación (configura Telegram, WhatsApp o email del dueño)</span>`;
+              ? `<span style="font-size:9px;color:var(--ok);border:1px solid var(--ok);padding:1px 6px">✓ escalación notifica por ${notify.channels.join(" + ")}</span>`
+              : `<span style="font-size:9px;color:var(--bad);border:1px solid var(--bad);padding:1px 6px">⚠ ESCALACIÓN SIN AVISO — configura Telegram, WhatsApp o email del equipo</span>`;
           })()}
           ${(() => {
             const conn = connectionsSummary(env);
@@ -339,5 +339,5 @@ export async function renderOverview(env: Env): Promise<string> {
       </section>
     </div>`;
 
-  return layout({ title: "Overview", activeTab: "overview", body, env });
+  return layout({ title: "Hawk Guru Realtor Suite", activeTab: "overview", body, env });
 }

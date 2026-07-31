@@ -415,7 +415,7 @@ export async function renderAgentePage(env: Env): Promise<string> {
       </div>
       <p class="text-[10.5px]" style="color:var(--dim)">El flujo es fijo — es una radiografía honesta, no un editor. Los cambios de cada nodo aplican desde el siguiente mensaje.</p>
     </div>`;
-  return layout({ title: "Mi Agente", activeTab: "agente", body, env });
+  return layout({ title: "AI Concierge", activeTab: "agente", body, env });
 }
 
 // --- Node modal (pop-up, editable) ---------------------------------------------

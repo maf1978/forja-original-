@@ -1,6 +1,5 @@
-// Dashboard shell: a fixed 248px sidebar (grouped navigation) + a live-status
-// topbar, wrapping each tab's server-rendered body. Retro-terminal dark theme
-// ("Forja admin"): Space Grotesk + JetBrains Mono, brutalist buttons, scan
+// Dashboard shell for Hawk Guru Realtor Suite: an operational command center
+// for pipeline, conversations and lead intelligence.
 // lines. Design tokens are exposed both as CSS custom properties (for inline
 // styles) and mapped to Tailwind color names (for utility classes) — see
 // docs/design-system.md, the contract every view follows.
@@ -31,34 +30,34 @@ interface Section {
 // depend on them) — do not rename them. Icons are lucide names.
 const NAV: Section[] = [
   {
-    label: "Inicio",
-    items: [{ id: "overview", label: "Resumen", href: "/admin/overview", icon: "layout-dashboard" }],
+    label: "Command Center",
+    items: [{ id: "overview", label: "Inicio", href: "/admin/overview", icon: "layout-dashboard" }],
   },
   {
-    label: "Bandeja",
+    label: "Lead Operations",
     items: [
-      { id: "conversations", label: "Conversaciones", href: "/admin/conversations", icon: "messages-square" },
-      { id: "leads", label: "Leads", href: "/admin/leads", icon: "user-plus" },
-      { id: "tickets", label: "Tickets", href: "/admin/tickets", icon: "life-buoy" },
-      { id: "campanas", label: "Campañas", href: "/admin/campanas", icon: "megaphone" },
+      { id: "conversations", label: "Inbox", href: "/admin/conversations", icon: "messages-square" },
+      { id: "leads", label: "Prospectos", href: "/admin/leads", icon: "house" },
+      { id: "tickets", label: "Escalaciones", href: "/admin/tickets", icon: "life-buoy" },
+      { id: "campanas", label: "Follow-up", href: "/admin/campanas", icon: "megaphone" },
     ],
   },
   {
-    label: "Mi Agente",
+    label: "AI Realtor",
     items: [
-      { id: "agente", label: "Flujo", href: "/admin/agente", icon: "workflow" },
-      { id: "kb", label: "Conocimiento", href: "/admin/kb", icon: "book-open" },
-      { id: "mejoras", label: "Mejoras", href: "/admin/mejoras", icon: "sparkles" },
-      { id: "conexiones", label: "Conexiones", href: "/admin/conexiones", icon: "plug-zap" },
-      { id: "config", label: "Configuración", href: "/admin/config", icon: "sliders-horizontal" },
+      { id: "agente", label: "AI Concierge", href: "/admin/agente", icon: "workflow" },
+      { id: "kb", label: "Market Intel", href: "/admin/kb", icon: "book-open" },
+      { id: "mejoras", label: "Training Lab", href: "/admin/mejoras", icon: "sparkles" },
+      { id: "conexiones", label: "Canales", href: "/admin/conexiones", icon: "plug-zap" },
+      { id: "config", label: "Settings", href: "/admin/config", icon: "sliders-horizontal" },
     ],
   },
   {
-    label: "Análisis",
+    label: "Intelligence",
     items: [
-      { id: "insights", label: "Insights", href: "/admin/insights", icon: "scan-eye" },
-      { id: "stats", label: "Estadísticas", href: "/admin/stats", icon: "bar-chart-3" },
-      { id: "costs", label: "Costos", href: "/admin/costs", icon: "receipt" },
+      { id: "insights", label: "Conversation Intel", href: "/admin/insights", icon: "scan-eye" },
+      { id: "stats", label: "Conversion Intel", href: "/admin/stats", icon: "bar-chart-3" },
+      { id: "costs", label: "AI Spend", href: "/admin/costs", icon: "receipt" },
     ],
   },
 ];
@@ -75,21 +74,11 @@ const HEAD_ASSETS = `
       theme: {
         extend: {
           colors: {
-            bg: "#141009",
-            panel: "#1d1710",
-            panel2: "#241c13",
-            raise: "#2b2116",
-            line: "#352a1d",
-            linelit: "#4c3a26",
-            accent: { DEFAULT: "#f07a3f", soft: "rgba(240,122,63,.14)" },
-            accent2: "#f5a623",
-            cream: "#efe7da",
-            muted: "#a1907b",
-            dim: "#726555",
-            ok: "#7fb77e",
-            info: "#7aa2d6",
-            bad: "#d97a6a",
-            violet: "#b99bd6",
+            bg: "#10130e", panel: "#171b14", panel2: "#20261b", raise: "#293022",
+            line: "#35402c", linelit: "#506044",
+            accent: { DEFAULT: "#bff549", soft: "rgba(191,245,73,.14)" }, accent2: "#e6ffab",
+            cream: "#f1f5e9", muted: "#b4bda8", dim: "#78816f", ok: "#8fd95d",
+            info: "#83b5ff", bad: "#ff8d7f", violet: "#c9a8ff",
           },
           fontFamily: {
             display: ["'Space Grotesk'", "ui-sans-serif", "system-ui", "sans-serif"],
@@ -108,11 +97,11 @@ const HEAD_ASSETS = `
 const GLOBAL_STYLE = `
 <style>
   :root{
-    --bg:#141009; --panel:#1d1710; --panel2:#241c13; --raise:#2b2116;
-    --line:#352a1d; --linelit:#4c3a26;
-    --accent:#f07a3f; --accent-2:#f5a623; --accent-soft:rgba(240,122,63,.14);
-    --cream:#efe7da; --muted:#a1907b; --dim:#726555;
-    --ok:#7fb77e; --info:#7aa2d6; --bad:#d97a6a; --violet:#b99bd6;
+    --bg:#10130e; --panel:#171b14; --panel2:#20261b; --raise:#293022;
+    --line:#35402c; --linelit:#506044;
+    --accent:#bff549; --accent-2:#e6ffab; --accent-soft:rgba(191,245,73,.14);
+    --cream:#f1f5e9; --muted:#b4bda8; --dim:#78816f;
+    --ok:#8fd95d; --info:#83b5ff; --bad:#ff8d7f; --violet:#c9a8ff;
     /* legacy aliases kept so mockup-derived snippets keep working */
     --border:#352a1d; --border-lit:#4c3a26; --green:#7fb77e; --blue:#7aa2d6; --red:#d97a6a;
   }
@@ -282,11 +271,11 @@ function sidebar(activeTab: string, pro: boolean, niche: NichePack | null): stri
     <div class="sb-brand" style="padding:20px 18px 16px;border-bottom:1px solid var(--line)">
       <div style="display:flex;align-items:center;gap:10px">
         <div style="width:34px;height:34px;flex:none;border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;background:var(--accent-soft);box-shadow:3px 3px 0 var(--linelit)">
-          <i data-lucide="terminal" width="18" height="18" style="color:var(--accent)"></i>
+          <i data-lucide="house" width="18" height="18" style="color:var(--accent)"></i>
         </div>
         <div style="line-height:1.05">
-          <div style="font-family:'Space Grotesk';font-weight:700;font-size:15px;letter-spacing:-.02em">Forja</div>
-          <div style="font-size:9.5px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase">Panel · ${pro ? "Pro" : "Free"}</div>
+          <div style="font-family:'Space Grotesk';font-weight:700;font-size:14px;letter-spacing:-.02em">HAWK GURU</div>
+          <div style="font-size:9px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase">REALTOR SUITE</div>
         </div>
       </div>
     </div>
@@ -294,11 +283,11 @@ function sidebar(activeTab: string, pro: boolean, niche: NichePack | null): stri
     <div class="sb-foot" style="padding:14px;border-top:1px solid var(--line)">
       <div style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line)">
         <div style="width:30px;height:30px;flex:none;background:var(--raise);border:1px solid var(--linelit);display:flex;align-items:center;justify-content:center;color:var(--accent)">
-          <i data-lucide="bot" width="16" height="16"></i>
+          <i data-lucide="sparkles" width="16" height="16"></i>
         </div>
         <div style="line-height:1.2;overflow:hidden">
-          <div style="font-size:12px;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">Panel del bot</div>
-          <div style="font-size:10px;color:var(--dim)">sesión activa</div>
+          <div style="font-size:12px;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">AI Realtor Console</div>
+          <div style="font-size:10px;color:var(--dim)">operación activa</div>
         </div>
       </div>
     </div>
@@ -336,7 +325,7 @@ export function layout(opts: { title: string; activeTab: string; body: string; e
         <div id="proj-switcher" style="margin-left:auto"></div>
         <div class="live-pill">
           <span style="width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.8s ease-in-out infinite,ring 2s infinite"></span>
-          <span style="font-size:11px;font-weight:600;letter-spacing:.04em">BOT EN LÍNEA</span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:.04em">SUITE EN LÍNEA</span>
         </div>
       </header>
       <main style="padding:22px 26px;min-width:0">${opts.body}</main>
@@ -396,13 +385,13 @@ export function renderUpgrade(env: Env, feature?: string): string {
           ${feature ? `“${feature}” es parte de Pro` : "Desbloquea el panel Pro"}
         </h2>
         <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 20px;max-width:560px">
-          Tu bot Starter ya atiende clientes, responde con tu conocimiento y captura leads.
-          El panel <b style="color:var(--cream)">Pro</b> le suma el cerebro analítico y de crecimiento:
+          Hawk Guru Realtor Suite centraliza conversaciones, qualification y pipelines.
+          Esta función suma inteligencia adicional para tu operación:
         </p>
         <div style="display:grid;gap:10px;margin-bottom:22px">${perks}</div>
-        <a href="https://horizontesia.com" target="_blank" rel="noopener" class="bigbtn"
+        <a href="/admin/pipelines" class="bigbtn"
           style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);border:1px solid var(--accent);color:#1a1206;box-shadow:4px 4px 0 var(--linelit);padding:12px 20px;font-family:'Space Grotesk';font-weight:700;font-size:14px">
-          <i data-lucide="arrow-up-right" width="17" height="17"></i> Subir a Pro con la comunidad
+          <i data-lucide="kanban-square" width="17" height="17"></i> Abrir Pipelines
         </a>
       </div>
     </div>`;
@@ -426,7 +415,7 @@ export function loginPage(error?: string): string {
         <i data-lucide="terminal" width="18" height="18" style="color:var(--accent)"></i>
       </div>
       <div>
-        <h1 style="font-family:'Space Grotesk';font-weight:700;font-size:18px;margin:0;letter-spacing:-.02em">Dashboard del bot</h1>
+        <h1 style="font-family:'Space Grotesk';font-weight:700;font-size:18px;margin:0;letter-spacing:-.02em">Hawk Guru Realtor Suite</h1>
         <p style="font-size:11px;color:var(--dim);margin:2px 0 0">Te mandamos un link a tu email para entrar.</p>
       </div>
     </div>
