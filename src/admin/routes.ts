@@ -43,6 +43,7 @@ import { applySuggestion, dismissSuggestion } from "../flywheel/apply";
 import { renderLeads, exportLeadsCsv } from "./views/leads";
 import { renderPipelines } from "./views/pipelines";
 import { renderQualification } from "./views/qualification";
+import { renderAppointments } from "./views/appointments";
 import { renderTickets } from "./views/tickets";
 import { renderConfig } from "./views/config";
 import { renderConexiones } from "./views/conexiones";
@@ -378,6 +379,11 @@ adminApp.post("/pipelines/leads/:id/stage", async (c) => {
 adminApp.get("/tickets", async (c) => c.html(await renderTickets(c.env)));
 
 adminApp.get("/qualification", (c) => c.html(renderQualification(c.env)));
+
+adminApp.get("/appointments", async (c) => {
+  if (getNiche(c.env).id !== "realtor") return c.redirect("/admin/leads");
+  return c.html(await renderAppointments(c.env));
+});
 
 adminApp.post("/qualification", async (c) => {
   const form = await c.req.formData();
