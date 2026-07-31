@@ -5,12 +5,12 @@
 // This is a stub with example values. Replace with your real business info.
 
 export const memberConfig = {
-  businessName: "Mi Negocio Ejemplo",
-  botName: "Asistente",
+  businessName: "Hawk Guru Realtor Suite",
+  botName: "AI Realtor Concierge",
   language: "es" as "es" | "en",
   tier: "pro" as "free" | "pro",
-  timezone: "America/Mexico_City",
-  contactEmail: "contacto@minegocio.example",
+  timezone: "America/New_York",
+  contactEmail: "",
 };
 
 export type MemberConfig = typeof memberConfig;
@@ -18,17 +18,10 @@ export type MemberConfig = typeof memberConfig;
 // Business context consumed by src/businessContext.ts to render the
 // <business_context> section of the system prompt. Edit freely.
 export const businessConfig = {
-  hours: "Lun-Sáb 10am-8pm. Domingo cerrado.",
-  services: [
-    { name: "Corte", price: 250 },
-    { name: "Barba", price: 200 },
-    { name: "Corte + Barba", price: 400 },
-  ],
-  location: "Av. Constitución 145, Centro, Monterrey",
-  paymentMethods: ["efectivo", "transferencia", "tarjeta"],
-  contactPhone: "81 1234 5678",
   customFields: {
-    // member can add any string keys
+    Especialidad: "Asistencia para comprar, vender o rentar propiedades.",
+    Proceso: "El concierge califica prospectos, registra preferencias y coordina el siguiente paso con un realtor.",
+    Politica: "No confirma inventario, precio, disponibilidad ni financiación sin revisión humana.",
   } as Record<string, string>,
 };
 
