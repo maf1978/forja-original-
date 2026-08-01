@@ -37,6 +37,8 @@ import { analyzeConversations } from "../insights/analyzer";
 import { renderAgentePage, renderAgenteCanvas, renderNodeModal, toggleTool, toastOob } from "./views/agente";
 import { renderKbList, renderKbEditor } from "./views/kb";
 import { KbDocsRepo, indexDoc, removeDocVectors, reindexAll, MAX_DOC_CHARS } from "../kb/docs";
+import { createMarketingDraft, inspectListing, type MarketingFormat } from "../marketing-compliance/copilot";
+import { renderMarketingCopilot } from "./views/marketing";
 import { renderMejoras } from "./views/mejoras";
 import { runFlywheel, getLessons, saveLessons } from "../flywheel/detect";
 import { applySuggestion, dismissSuggestion } from "../flywheel/apply";
@@ -366,6 +368,21 @@ adminApp.get("/leads", async (c) => c.html(await renderLeads(c.env)));
 adminApp.get("/pipelines", async (c) => {
   if (getNiche(c.env).id !== "realtor") return c.redirect("/admin/leads");
   return c.html(await renderPipelines(c.env));
+});
+
+// Subagente administrativo aislado: nunca se monta en webhooks ni en SupportAgent.
+adminApp.get("/marketing/:id", async (c) => {
+  const doc = await new KbDocsRepo(new Db(c.env.DB)).getById(c.req.param("id"));
+  if (!doc || !doc.title.toLowerCase().startsWith("listing verificado")) return c.redirect("/admin/kb");
+  return c.html(renderMarketingCopilot(c.env, doc, inspectListing(doc)));
+});
+
+adminApp.post("/marketing/:id", async (c) => {
+  const doc = await new KbDocsRepo(new Db(c.env.DB)).getById(c.req.param("id"));
+  if (!doc || !doc.title.toLowerCase().startsWith("listing verificado")) return c.redirect("/admin/kb");
+  const picked = String((await c.req.formData()).get("format") ?? "instagram");
+  const format: MarketingFormat = ["mls", "instagram", "facebook", "reel", "open-house"].includes(picked) ? picked as MarketingFormat : "instagram";
+  return c.html(renderMarketingCopilot(c.env, doc, await createMarketingDraft(c.env, doc, format), format));
 });
 
 adminApp.post("/pipelines/leads/:id/stage", async (c) => {
