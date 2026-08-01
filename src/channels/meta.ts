@@ -25,6 +25,14 @@ interface MetaMessaging {
     attachments?: { type: string; payload?: { url?: string } }[];
   };
   postback?: { payload?: string; title?: string };
+  referral?: { source?: string; type?: string; ad_id?: string; campaign_id?: string; ref?: string };
+}
+
+export function metaSocialAttribution(raw: unknown): { eventKey: string; sourceType: string; contentId?: string; campaignId?: string; adId?: string; payload: string } {
+  const ev = raw as MetaMessaging;
+  const ref = ev.referral;
+  const sourceType = ref?.ad_id || ref?.source === "ADS" ? "meta_ad" : ev.postback ? "postback" : ev.message?.quick_reply ? "quick_reply" : "social_dm";
+  return { eventKey: ev.message?.mid || `${ev.sender?.id ?? "unknown"}:${ev.timestamp ?? Date.now()}`, sourceType, contentId: ref?.ref, campaignId: ref?.campaign_id, adId: ref?.ad_id, payload: JSON.stringify({ referral: ref, quick_reply: ev.message?.quick_reply?.payload, postback: ev.postback?.payload }) };
 }
 
 interface MetaWebhookBody {

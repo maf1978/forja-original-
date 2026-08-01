@@ -4,7 +4,7 @@ import type { ChannelAdapter } from "./channels/shared";
 import { telegramAdapter } from "./channels/telegram";
 import { manychatAdapter } from "./channels/manychat";
 import { twilioAdapter } from "./channels/twilio";
-import { parseMetaEvents, verifyMetaSignature } from "./channels/meta";
+import { metaSocialAttribution, parseMetaEvents, verifyMetaSignature } from "./channels/meta";
 import { parseWhatsAppEvents, serveWhatsAppMedia } from "./channels/whatsapp";
 import { parseKapsoMessage } from "./channels/kapso";
 import { adminApp } from "./admin/routes";
@@ -142,6 +142,12 @@ app.post("/webhooks/meta", async (c) => {
     // (si no, cada DM se procesa DOBLE: 2x LLM, 2x respuestas al lead y
     // colisiones de rate limit en ráfagas de historias).
     if (msg.channel === "instagram" && c.env.IG_DM_SOURCE === "manychat") continue;
+    const social = metaSocialAttribution(msg.rawPayload);
+    await new Db(c.env.DB).run(
+      `INSERT OR IGNORE INTO social_events (id, event_key, conversation_id, channel, source_type, content_id, campaign_id, ad_id, payload, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [crypto.randomUUID(), `${msg.channel}:${social.eventKey}`, `${msg.channel}:${msg.channelUserId}`, msg.channel, social.sourceType, social.contentId ?? null, social.campaignId ?? null, social.adId ?? null, social.payload, Date.now()],
+    );
     const doId = c.env.AGENT.idFromName(`${msg.channel}:${msg.channelUserId}`);
     await c.env.AGENT.get(doId).ingest(msg);
   }

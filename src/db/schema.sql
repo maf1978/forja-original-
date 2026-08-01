@@ -351,3 +351,19 @@ CREATE TABLE IF NOT EXISTS managed_client_setup (
   updated_at INTEGER NOT NULL,
   FOREIGN KEY (client_id) REFERENCES managed_clients(id) ON DELETE CASCADE
 );
+
+-- Attribution for social inbound events. A conversation can later be tied to
+-- a Reel, DM, quick reply or click-to-message ad without duplicating the CRM.
+CREATE TABLE IF NOT EXISTS social_events (
+  id TEXT PRIMARY KEY,
+  event_key TEXT NOT NULL UNIQUE,
+  conversation_id TEXT NOT NULL,
+  channel TEXT NOT NULL,
+  source_type TEXT NOT NULL,
+  content_id TEXT,
+  campaign_id TEXT,
+  ad_id TEXT,
+  payload TEXT,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_social_events_conversation ON social_events(conversation_id, created_at DESC);
