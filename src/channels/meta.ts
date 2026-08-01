@@ -24,6 +24,7 @@ interface MetaMessaging {
     quick_reply?: { payload?: string };
     attachments?: { type: string; payload?: { url?: string } }[];
   };
+  postback?: { payload?: string; title?: string };
 }
 
 interface MetaWebhookBody {
@@ -50,17 +51,19 @@ export function parseMetaEvents(body: MetaWebhookBody): IncomingMessage[] {
         echo: m?.is_echo,
         kind: m?.text ? "text" : m?.attachments?.[0]?.type ?? "other",
       }));
-      if (!m || m.is_echo) continue; // ignora echoes
-      if (m.quick_reply) continue; // tap de botón (quick reply), no es texto para el LLM
+      if ((!m && !ev.postback) || m?.is_echo) continue; // ignora echoes
       const sender = ev.sender?.id;
       if (!sender) continue;
-      const audio = m.attachments?.find((a) => a.type === "audio");
-      const image = m.attachments?.find((a) => a.type === "image");
-      if (!m.text && !audio && !image) continue; // ignora recibos/postbacks sin contenido
+      const audio = m?.attachments?.find((a) => a.type === "audio");
+      const image = m?.attachments?.find((a) => a.type === "image");
+      const actionText = m?.quick_reply?.payload || ev.postback?.payload || ev.postback?.title;
+      if (!m?.text && !actionText && !audio && !image) continue;
       out.push({
         channel,
         channelUserId: String(sender),
-        text: m.text || undefined,
+        // Botones y postbacks pasan al mismo intake que texto libre. El flujo
+        // conserva fallback por keyword/número si el canal no renderiza botones.
+        text: actionText || m?.text || undefined,
         audioUrl: audio?.payload?.url,
         imageUrl: image?.payload?.url,
         isOwnerMessage: false,
