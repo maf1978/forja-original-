@@ -340,3 +340,14 @@ CREATE TABLE IF NOT EXISTS managed_clients (
   updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_managed_clients_status ON managed_clients(status, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS managed_client_setup (
+  client_id TEXT PRIMARY KEY,
+  profile_ready INTEGER NOT NULL DEFAULT 0,
+  access_ready INTEGER NOT NULL DEFAULT 0,
+  channel_ready INTEGER NOT NULL DEFAULT 0,
+  bot_ready INTEGER NOT NULL DEFAULT 0,
+  reviewed_ready INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (client_id) REFERENCES managed_clients(id) ON DELETE CASCADE
+);
