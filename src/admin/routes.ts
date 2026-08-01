@@ -386,7 +386,9 @@ adminApp.get("/appointments", async (c) => {
 
 adminApp.get("/open-houses", async (c) => {
   if (getNiche(c.env).id !== "realtor") return c.redirect("/admin/leads");
-  return c.html(await renderOpenHouses(c.env));
+  const address = c.req.query("address")?.trim().slice(0, 180);
+  const title = c.req.query("title")?.trim().slice(0, 120);
+  return c.html(await renderOpenHouses(c.env, address ? { address, title } : undefined));
 });
 
 adminApp.post("/open-houses", async (c) => {
