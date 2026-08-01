@@ -31,11 +31,46 @@ function banner(tone: "ok" | "bad" | "neutral", text: string): string {
   return `<div style="border:1px solid ${color};background:${bg};color:${tone === "neutral" ? "var(--muted)" : color};padding:10px 14px;font-size:12.5px;margin-bottom:16px">${text}</div>`;
 }
 
+type ListingSnapshot = {
+  doc: KbDoc;
+  address: string;
+  price: string;
+  status: "available" | "under-contract" | "sold" | "unknown";
+  zone: string;
+};
+
+/** A Listing verificado is still a KB document (so the AI can retrieve it),
+ * but this small projection gives the human team a reliable property board. */
+function listingSnapshot(doc: KbDoc): ListingSnapshot | null {
+  if (!doc.title.toLowerCase().startsWith("listing verificado")) return null;
+  const field = (name: string): string => {
+    const match = doc.content.match(new RegExp(`^${name}:\\s*(.+)$`, "im"));
+    return match?.[1]?.trim() ?? "";
+  };
+  const rawStatus = field("Estatus").toLowerCase();
+  const status = rawStatus.includes("vendido")
+    ? "sold"
+    : rawStatus.includes("contrato") || rawStatus.includes("oferta")
+      ? "under-contract"
+      : rawStatus.includes("disponible")
+        ? "available"
+        : "unknown";
+  return { doc, address: field("Dirección") || doc.title.replace(/^listing verificado\s*·?\s*/i, ""), price: field("Precio"), status, zone: field("Zona") };
+}
+
+function renderListingBoard(listings: ListingSnapshot[]): string {
+  if (!listings.length) return "";
+  const labels = { available: "Disponible", "under-contract": "Bajo contrato", sold: "Vendido", unknown: "Por confirmar" };
+  const colors = { available: "var(--ok)", "under-contract": "var(--accent)", sold: "var(--dim)", unknown: "var(--bad)" };
+  return `<section style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><div style="font-size:10px;letter-spacing:.14em;color:var(--accent)">PROPERTY INTELLIGENCE</div><span class="text-dim text-[10.5px]">${listings.length} ${listings.length === 1 ? "propiedad verificada" : "propiedades verificadas"}</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px">${listings.map((listing) => `<a href="/admin/kb/${encodeURIComponent(listing.doc.id)}/edit" style="display:block;border:1px solid var(--line);background:var(--panel);padding:13px;text-decoration:none"><div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><b class="text-cream" style="font-size:12px;line-height:1.35">${esc(listing.address || "Dirección por confirmar")}</b><span style="font-size:9px;letter-spacing:.06em;color:${colors[listing.status]};border:1px solid ${colors[listing.status]};padding:3px 5px;white-space:nowrap">${labels[listing.status]}</span></div>${listing.price ? `<div style="font-size:14px;color:var(--accent);font-family:'Space Grotesk';font-weight:700;margin-top:10px">${esc(listing.price)}</div>` : `<div class="text-dim" style="font-size:11px;margin-top:10px">Precio por confirmar</div>`}${listing.zone ? `<div class="text-muted" style="font-size:10.5px;margin-top:5px">${esc(listing.zone)}</div>` : ""}</a>`).join("")}</div></section>`;
+}
+
 export async function renderKbList(
   env: Env,
   flash?: { saved?: boolean; deleted?: boolean; reindexed?: string },
 ): Promise<string> {
   const docs = await new KbDocsRepo(new Db(env.DB)).list();
+  const listings = docs.map(listingSnapshot).filter((listing): listing is ListingSnapshot => listing !== null);
 
   const bannerHtml = flash?.saved
     ? banner("ok", "✓ Guardado e indexado — el bot ya puede usarlo.")
@@ -81,11 +116,13 @@ export async function renderKbList(
       <a href="/admin/kb/new?template=listing" class="ghostbtn" style="border:1px solid var(--line);padding:9px 12px;font-size:11px">＋ Listing verificado</a>
     </div>
 
+    ${renderListingBoard(listings)}
+
     <div class="bg-panel border border-line" style="margin-bottom:16px;overflow:hidden">
       ${rows}
     </div>
 
-    <div style="border:1px solid var(--line);background:var(--panel2);padding:14px;margin-bottom:16px"><div style="font-size:10px;letter-spacing:.14em;color:var(--accent)">PROPERTY INTELLIGENCE</div><p class="text-muted text-[11.5px]" style="line-height:1.5;margin:7px 0 0">Usa “Listing verificado” para cargar dirección, precio, estatus, características y Open House. El bot solo debe recomendar información que esté aquí confirmada.</p></div>
+    <div style="border:1px solid var(--line);background:var(--panel2);padding:14px;margin-bottom:16px"><div style="font-size:10px;letter-spacing:.14em;color:var(--accent)">PROPERTY INTELLIGENCE</div><p class="text-muted text-[11.5px]" style="line-height:1.5;margin:7px 0 0">Usa “Listing verificado” para cargar dirección, precio, estatus, características y Open House. El bot solo debe recomendar información que esté aquí confirmada. Marca “bajo contrato” o “vendido” antes de que un agente la siga ofreciendo.</p></div>
 
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px" class="text-dim text-[11.5px]">
       <span>Además, tu bot trae <b class="text-cream">${FIXTURE_CHUNKS.length}</b> fragmentos precargados del repo.</span>
