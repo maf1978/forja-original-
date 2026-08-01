@@ -9,6 +9,6 @@ related_targets: ["src/admin/views/overview.ts"]
 
 Mode: Operate. Audience: Realtors and small teams running live buyer, seller, renter and Open House workflows. Their job is to see what requires review, open the correct workspace, and act without losing human approval.
 
-The shell must preserve every current route, auth rule, tier gate, D1 query, channel integration and mobile navigation behavior. It replaces the shared visual world only: Private Office uses limestone work surfaces, ink-blue rail, copper action signals, a compact monogram, and a quiet workspace header. The memorable moment is the rail's white HG medallion beside a page that reads like a personal property office rather than an AI bot console.
+The shell must preserve every current route, auth rule, tier gate, D1 query, channel integration and mobile navigation behavior. It replaces the shared visual world only: Private Office uses limestone work surfaces, a white rail with full-text navigation, copper action signals, a compact monogram, and a quiet workspace header. The memorable moment is a page that reads like a personal property office rather than an AI bot console, without requiring users to interpret icons.
 
 No metrics, client names, listings or integration status may be fabricated. Remaining decision: expose this visual variant per tenant only after the shared direction is accepted.

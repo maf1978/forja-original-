@@ -129,7 +129,7 @@ Short wordmark, one focused demo call to action, and no busy marketing menu.
 Client workspaces use a separate visual language so the dashboard is recognizably Hawk Guru Realtor Suite rather than a re-labeled generic bot panel. The use scene is a Realtor reviewing a live day of leads and properties in a calm private office.
 
 - **Field:** limestone `#f4f1eb` with white workspace panels.
-- **Structure:** ink-blue `#142e3b` slim monogram rail; it replaces the wide command-center sidebar.
+- **Structure:** white navigation rail with full text labels; it replaces the wide command-center sidebar and does not rely on icon recognition.
 - **Signal:** copper `#b85d3f` is reserved for the active destination and primary action. Green remains a semantic success state.
 - **Typography:** Manrope is the working UI face. Roboto Mono is reserved for compact operational data.
-- **Behavior:** the existing route model, tier gates, data and integrations stay unchanged. Desktop uses a 76px icon rail; mobile keeps an accessible horizontal navigation strip.
+- **Behavior:** the existing route model, tier gates, data and integrations stay unchanged. Desktop uses a readable text navigation rail; mobile keeps an accessible horizontal navigation strip.

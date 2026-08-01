@@ -81,9 +81,9 @@ const HEAD_ASSETS = `
         extend: {
           colors: {
             bg: "#f4f1eb", panel: "#ffffff", panel2: "#edf1f2", raise: "#e3e8e8",
-            line: "#d4dcda", linelit: "#aab8b6",
+            line: "#c7d1cf", linelit: "#8fa2a0",
             accent: { DEFAULT: "#b85d3f", soft: "rgba(184,93,63,.10)" }, accent2: "#17465a",
-            cream: "#142e3b", muted: "#536570", dim: "#74848a", ok: "#278060",
+            cream: "#142e3b", muted: "#40535f", dim: "#5b6e76", ok: "#278060",
             info: "#2f6d8a", bad: "#b9423a", violet: "#7665a8",
           },
           fontFamily: {
@@ -104,9 +104,9 @@ const GLOBAL_STYLE = `
 <style>
   :root{
     --bg:#f4f1eb; --panel:#ffffff; --panel2:#edf1f2; --raise:#e3e8e8;
-    --line:#d4dcda; --linelit:#aab8b6;
+    --line:#c7d1cf; --linelit:#8fa2a0;
     --accent:#b85d3f; --accent-2:#17465a; --accent-soft:rgba(184,93,63,.10);
-    --cream:#142e3b; --muted:#536570; --dim:#74848a;
+    --cream:#142e3b; --muted:#40535f; --dim:#5b6e76;
     --ok:#278060; --info:#2f6d8a; --bad:#b9423a; --violet:#7665a8;
     /* legacy aliases kept so mockup-derived snippets keep working */
     --border:#d4dcda; --border-lit:#aab8b6; --green:#278060; --blue:#2f6d8a; --red:#b9423a;
@@ -138,8 +138,7 @@ const GLOBAL_STYLE = `
     background:linear-gradient(90deg,transparent 0,rgba(23,70,90,.018) 50%,transparent 100%)}
 
   /* sidebar nav */
-  .navlink:hover{background:rgba(255,255,255,.1);color:#fff}
-  .navlink:hover [data-lucide]{color:#fff}
+  .navlink:hover{background:var(--panel2);color:var(--cream)}
 
   /* entrance + brutalist buttons */
   .card{animation:rise .3s cubic-bezier(.16,1,.3,1) both;border-radius:14px}
@@ -181,20 +180,20 @@ const GLOBAL_STYLE = `
     animation:toastIn .25s cubic-bezier(.16,1,.3,1),toastOut .3s ease-in 2.4s forwards}
 
   /* app shell */
-  .shell{min-height:100vh;display:grid;grid-template-columns:76px minmax(0,1fr);background:var(--bg)}
-  .sb{background:#142e3b;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:40;box-shadow:8px 0 26px rgba(20,46,59,.09)}
-  .sb-nav{padding:16px 10px;display:flex;flex-direction:column;gap:5px;flex:1;overflow-y:auto}
-  .sb-sec{height:15px;margin:4px 0;color:transparent!important;font-size:0;border-top:1px solid rgba(255,255,255,.18)}
+  .shell{min-height:100vh;display:grid;grid-template-columns:232px minmax(0,1fr);background:var(--bg)}
+  .sb{background:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:40;border-right:1px solid var(--line)}
+  .sb-nav{padding:16px 12px;display:flex;flex-direction:column;gap:3px;flex:1;overflow-y:auto}
+  .sb-sec{margin:16px 9px 7px;color:var(--dim)!important;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
   .live-pill{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 11px;box-shadow:0 3px 12px rgba(20,46,59,.06)}
 
   @media (max-width:767px){
     .shell{grid-template-columns:1fr}
     .sb{position:sticky;top:0;height:auto;flex-direction:row;align-items:center;border-right:none;overflow-x:auto}
-    .sb-brand{flex:none;border-bottom:none !important;border-right:1px solid rgba(255,255,255,.18)}
+    .sb-brand{flex:none;border-bottom:none !important;border-right:1px solid var(--line)}
     .sb-nav{flex-direction:row;align-items:center;gap:4px;padding:8px 10px;overflow-y:visible;overflow-x:auto}
     .sb-sec{display:none}
     .sb-foot{display:none}
-    .navlink{border-left:none !important;white-space:nowrap;border-bottom:2px solid transparent}
+    .navlink{width:auto!important;height:auto!important;border-left:none !important;white-space:nowrap;border-bottom:2px solid transparent}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -225,13 +224,12 @@ const GLOBAL_SCRIPT = `
 
 function navItem(item: Item, active: boolean): string {
   const base =
-    "display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin:auto;border-radius:12px;";
+    "display:flex;align-items:center;width:100%;min-height:40px;padding:9px 11px;border-radius:9px;font-size:13px;font-weight:700;";
   const style = active
-    ? base + "color:#fff;background:var(--accent);box-shadow:0 5px 13px rgba(0,0,0,.2)"
-    : base + "color:rgba(255,255,255,.56);background:transparent";
-  const iconColor = active ? "#fff" : "rgba(255,255,255,.64)";
-  return `<a href="${item.href}" class="navlink" style="${style}" title="${item.label}" aria-label="${item.label}">
-    <i data-lucide="${item.icon}" width="18" height="18" style="color:${iconColor}"></i>
+    ? base + "color:#fff;background:var(--accent);box-shadow:0 4px 10px rgba(184,93,63,.18)"
+    : base + "color:var(--muted);background:transparent";
+  return `<a href="${item.href}" class="navlink" style="${style}" aria-label="${item.label}">
+    ${item.label}
   </a>`;
 }
 
@@ -239,9 +237,9 @@ function navItem(item: Item, active: boolean): string {
 // la página de upgrade en vez de a la vista real. Se ven, pero invitan a subir.
 function navItemLocked(item: Item): string {
   const base =
-    "display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin:auto;border-radius:12px;color:rgba(255,255,255,.3)";
+    "display:flex;align-items:center;gap:8px;width:100%;min-height:40px;padding:9px 11px;border-radius:9px;font-size:13px;font-weight:700;color:var(--dim)";
   return `<a href="${UPGRADE_URL}" class="navlink" style="${base}" title="${item.label}: disponible en Pro" aria-label="${item.label}: disponible en Pro">
-    <i data-lucide="lock" width="16" height="16" style="color:rgba(255,255,255,.35)"></i>
+    ${item.label}<span style="margin-left:auto;font-size:8px;letter-spacing:.1em;color:var(--accent)">PRO</span>
   </a>`;
 }
 
@@ -272,14 +270,15 @@ function sidebar(activeTab: string, pro: boolean, niche: NichePack | null): stri
   }).join("");
 
   return `<aside class="sb">
-    <div class="sb-brand" style="padding:16px 10px;border-bottom:1px solid rgba(255,255,255,.18)">
-      <a href="/admin/overview" title="Hawk Guru Realtor Suite" aria-label="Hawk Guru Realtor Suite" style="display:grid;place-items:center;width:48px;height:48px;margin:auto;border-radius:14px;background:#fff;color:#142e3b;font-family:'Manrope';font-weight:800;font-size:15px;letter-spacing:-.08em;box-shadow:0 6px 16px rgba(0,0,0,.18)">HG</a>
+    <div class="sb-brand" style="padding:18px 16px 16px;border-bottom:1px solid var(--line)">
+      <a href="/admin/overview" title="Hawk Guru Realtor Suite" aria-label="Hawk Guru Realtor Suite" style="display:flex;align-items:center;gap:10px;color:var(--cream)">
+        <span style="display:grid;place-items:center;width:35px;height:35px;border-radius:10px;background:var(--accent);color:#fff;font-family:'Manrope';font-weight:800;font-size:12px;letter-spacing:-.06em">HG</span>
+        <span style="font-size:12px;line-height:1.1;font-weight:800;letter-spacing:-.02em">HAWK GURU<small style="display:block;margin-top:4px;color:var(--dim);font-size:8px;font-weight:800;letter-spacing:.12em">REALTOR SUITE</small></span>
+      </a>
     </div>
     <nav class="sb-nav">${sections}</nav>
-    <div class="sb-foot" style="padding:12px 10px;border-top:1px solid rgba(255,255,255,.18)">
-      <a href="/admin/agente" title="AI Concierge" aria-label="AI Concierge" style="display:grid;place-items:center;width:48px;height:48px;margin:auto;border-radius:12px;background:rgba(255,255,255,.08);color:#fff">
-        <i data-lucide="sparkles" width="18" height="18"></i>
-      </a>
+    <div class="sb-foot" style="padding:12px;border-top:1px solid var(--line)">
+      <a href="/admin/agente" title="AI Concierge" aria-label="AI Concierge" style="display:block;padding:10px 11px;border-radius:9px;background:var(--panel2);color:var(--cream);font-size:12px;font-weight:800">AI Concierge</a>
     </div>
   </aside>`;
 }
