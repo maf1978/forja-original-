@@ -132,7 +132,7 @@ adminApp.get("/kb", async (c) =>
   ),
 );
 
-adminApp.get("/kb/new", (c) => c.html(renderKbEditor(null, c.env)));
+adminApp.get("/kb/new", (c) => c.html(renderKbEditor(null, c.env, c.req.query("template"))));
 
 adminApp.get("/kb/:id/edit", async (c) => {
   const doc = await new KbDocsRepo(new Db(c.env.DB)).getById(c.req.param("id"));

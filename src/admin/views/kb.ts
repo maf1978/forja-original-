@@ -78,11 +78,14 @@ export async function renderKbList(
          style="margin-left:auto;background:var(--accent);border:1px solid var(--accent);color:#1a1206;box-shadow:3px 3px 0 var(--linelit);padding:9px 16px;display:flex;align-items:center;gap:8px;white-space:nowrap">
         <i data-lucide="plus" width="14" height="14"></i> Nuevo documento
       </a>
+      <a href="/admin/kb/new?template=listing" class="ghostbtn" style="border:1px solid var(--line);padding:9px 12px;font-size:11px">＋ Listing verificado</a>
     </div>
 
     <div class="bg-panel border border-line" style="margin-bottom:16px;overflow:hidden">
       ${rows}
     </div>
+
+    <div style="border:1px solid var(--line);background:var(--panel2);padding:14px;margin-bottom:16px"><div style="font-size:10px;letter-spacing:.14em;color:var(--accent)">PROPERTY INTELLIGENCE</div><p class="text-muted text-[11.5px]" style="line-height:1.5;margin:7px 0 0">Usa “Listing verificado” para cargar dirección, precio, estatus, características y Open House. El bot solo debe recomendar información que esté aquí confirmada.</p></div>
 
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px" class="text-dim text-[11.5px]">
       <span>Además, tu bot trae <b class="text-cream">${FIXTURE_CHUNKS.length}</b> fragmentos precargados del repo.</span>
@@ -96,8 +99,11 @@ export async function renderKbList(
   return layout({ title: "Market Intel", activeTab: "kb", body, env });
 }
 
-export function renderKbEditor(doc: KbDoc | null, env: Env): string {
+export function renderKbEditor(doc: KbDoc | null, env: Env, template?: string): string {
   const isNew = doc === null;
+  const listing = isNew && template === "listing";
+  const defaultTitle = listing ? "Listing verificado · [Dirección]" : "";
+  const defaultContent = listing ? "Dirección: \nEstatus: disponible / bajo contrato / vendido\nPrecio: \nTipo y características: \nZona: \nOpen House: \nCTA permitido: \nNotas para el agente: confirmar disponibilidad y precio antes de prometerlos." : "";
   const body = `
     <div style="margin-bottom:16px">
       <a href="/admin/kb" style="font-size:12.5px;display:inline-flex;align-items:center;gap:6px">
@@ -112,7 +118,7 @@ export function renderKbEditor(doc: KbDoc | null, env: Env): string {
         <label for="title" class="font-display font-semibold text-[12.5px] text-cream">Título</label>
         <p class="text-dim text-[11px]">Un nombre claro del tema (el bot lo ve como contexto).</p>
         <input type="text" id="title" name="title" required maxlength="200"
-               value="${esc(doc?.title ?? "")}" placeholder="Ej. Horarios y ubicación"
+               value="${esc(doc?.title ?? defaultTitle)}" placeholder="Ej. Horarios y ubicación"
                style="background:var(--bg);border:1px solid var(--line);color:var(--cream);padding:10px 12px;font-size:12.5px;outline:none">
       </div>
 
@@ -121,7 +127,7 @@ export function renderKbEditor(doc: KbDoc | null, env: Env): string {
         <p class="text-dim text-[11px]">Escribe en lenguaje natural, como se lo explicarías a un empleado nuevo. Máximo ${MAX_DOC_CHARS.toLocaleString("es-MX")} caracteres.</p>
         <textarea id="content" name="content" rows="14" required maxlength="${MAX_DOC_CHARS}"
                   placeholder="Ej. Abrimos de lunes a sábado de 9am a 7pm. Los domingos cerramos. Estamos en Av. Reforma 123, a dos cuadras del metro…"
-                  style="background:var(--bg);border:1px solid var(--line);color:var(--cream);padding:10px 12px;font-size:12.5px;outline:none;resize:vertical">${esc(doc?.content ?? "")}</textarea>
+                  style="background:var(--bg);border:1px solid var(--line);color:var(--cream);padding:10px 12px;font-size:12.5px;outline:none;resize:vertical">${esc(doc?.content ?? defaultContent)}</textarea>
       </div>
 
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">
