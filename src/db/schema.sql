@@ -367,3 +367,18 @@ CREATE TABLE IF NOT EXISTS social_events (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_social_events_conversation ON social_events(conversation_id, created_at DESC);
+
+-- Marketing Compliance Copilot: drafts privados, nunca enviados ni publicados.
+CREATE TABLE IF NOT EXISTS marketing_drafts (
+  id TEXT PRIMARY KEY,
+  listing_doc_id TEXT NOT NULL,
+  format TEXT NOT NULL,
+  content TEXT NOT NULL,
+  facts_json TEXT NOT NULL,
+  flags_json TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  approved_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_marketing_drafts_listing ON marketing_drafts(listing_doc_id, created_at DESC);

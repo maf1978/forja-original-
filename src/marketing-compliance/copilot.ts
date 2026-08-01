@@ -8,6 +8,7 @@ import type { Env } from "../env";
 import { createModel } from "../llm/provider";
 import { loadLlmOverrides } from "../settings-loader";
 import type { KbDoc } from "../kb/docs";
+import { Db } from "../db/client";
 
 export type MarketingFormat = "mls" | "instagram" | "facebook" | "reel" | "open-house";
 
@@ -18,6 +19,23 @@ export type MarketingDraft = {
   complianceFlags: string[];
   draft?: string;
 };
+
+export type SavedMarketingDraft = { id: string; listing_doc_id: string; format: MarketingFormat; content: string; status: "draft" | "approved" | "archived"; created_at: number; updated_at: number; approved_at: number | null };
+
+export class MarketingDraftsRepo {
+  constructor(private readonly db: Db) {}
+  async create(listingDocId: string, format: MarketingFormat, draft: MarketingDraft): Promise<SavedMarketingDraft> {
+    if (!draft.draft) throw new Error("No se puede guardar un borrador vacío");
+    const record: SavedMarketingDraft = { id: crypto.randomUUID(), listing_doc_id: listingDocId, format, content: draft.draft, status: "draft", created_at: Date.now(), updated_at: Date.now(), approved_at: null };
+    await this.db.run("INSERT INTO marketing_drafts (id, listing_doc_id, format, content, facts_json, flags_json, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [record.id, record.listing_doc_id, record.format, record.content, JSON.stringify(draft.fields), JSON.stringify(draft.complianceFlags), record.status, record.created_at, record.updated_at]);
+    return record;
+  }
+  async listForListing(listingDocId: string): Promise<SavedMarketingDraft[]> {
+    return this.db.all<SavedMarketingDraft>("SELECT id, listing_doc_id, format, content, status, created_at, updated_at, approved_at FROM marketing_drafts WHERE listing_doc_id = ? ORDER BY created_at DESC", [listingDocId]);
+  }
+  async getById(id: string): Promise<SavedMarketingDraft | null> { return this.db.first<SavedMarketingDraft>("SELECT id, listing_doc_id, format, content, status, created_at, updated_at, approved_at FROM marketing_drafts WHERE id = ?", [id]); }
+  async setStatus(id: string, status: "approved" | "archived"): Promise<void> { const now = Date.now(); await this.db.run("UPDATE marketing_drafts SET status = ?, updated_at = ?, approved_at = ? WHERE id = ?", [status, now, status === "approved" ? now : null, id]); }
+}
 
 const required = ["Dirección", "Estatus", "Precio", "Tipo y características"];
 
@@ -56,4 +74,3 @@ export async function createMarketingDraft(env: Env, doc: KbDoc, format: Marketi
   });
   return { ...result, draft: response.text.trim() };
 }
-

@@ -37,7 +37,7 @@ import { analyzeConversations } from "../insights/analyzer";
 import { renderAgentePage, renderAgenteCanvas, renderNodeModal, toggleTool, toastOob } from "./views/agente";
 import { renderKbList, renderKbEditor } from "./views/kb";
 import { KbDocsRepo, indexDoc, removeDocVectors, reindexAll, MAX_DOC_CHARS } from "../kb/docs";
-import { createMarketingDraft, inspectListing, type MarketingFormat } from "../marketing-compliance/copilot";
+import { createMarketingDraft, inspectListing, MarketingDraftsRepo, type MarketingFormat } from "../marketing-compliance/copilot";
 import { renderMarketingCopilot } from "./views/marketing";
 import { renderMejoras } from "./views/mejoras";
 import { runFlywheel, getLessons, saveLessons } from "../flywheel/detect";
@@ -374,7 +374,7 @@ adminApp.get("/pipelines", async (c) => {
 adminApp.get("/marketing/:id", async (c) => {
   const doc = await new KbDocsRepo(new Db(c.env.DB)).getById(c.req.param("id"));
   if (!doc || !doc.title.toLowerCase().startsWith("listing verificado")) return c.redirect("/admin/kb");
-  return c.html(renderMarketingCopilot(c.env, doc, inspectListing(doc)));
+  return c.html(renderMarketingCopilot(c.env, doc, inspectListing(doc), "instagram", undefined, await new MarketingDraftsRepo(new Db(c.env.DB)).listForListing(doc.id)));
 });
 
 adminApp.post("/marketing/:id", async (c) => {
@@ -382,7 +382,19 @@ adminApp.post("/marketing/:id", async (c) => {
   if (!doc || !doc.title.toLowerCase().startsWith("listing verificado")) return c.redirect("/admin/kb");
   const picked = String((await c.req.formData()).get("format") ?? "instagram");
   const format: MarketingFormat = ["mls", "instagram", "facebook", "reel", "open-house"].includes(picked) ? picked as MarketingFormat : "instagram";
-  return c.html(renderMarketingCopilot(c.env, doc, await createMarketingDraft(c.env, doc, format), format));
+  const draft = await createMarketingDraft(c.env, doc, format);
+  const repo = new MarketingDraftsRepo(new Db(c.env.DB));
+  const saved = draft.draft ? await repo.create(doc.id, format, draft) : undefined;
+  return c.html(renderMarketingCopilot(c.env, doc, draft, format, saved, await repo.listForListing(doc.id)));
+});
+
+adminApp.post("/marketing/drafts/:id/status", async (c) => {
+  const repo = new MarketingDraftsRepo(new Db(c.env.DB));
+  const draft = await repo.getById(c.req.param("id"));
+  if (!draft) return c.redirect("/admin/kb");
+  const status = String((await c.req.formData()).get("status"));
+  if (status === "approved" || status === "archived") await repo.setStatus(draft.id, status);
+  return c.redirect(`/admin/marketing/${encodeURIComponent(draft.listing_doc_id)}`);
 });
 
 adminApp.post("/pipelines/leads/:id/stage", async (c) => {
