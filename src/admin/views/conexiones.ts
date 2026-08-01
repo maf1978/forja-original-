@@ -41,6 +41,11 @@ function channelStatuses(env: Env): ChannelStatus[] {
   const manychatMissing = [!has(env.MANYCHAT_API_KEY) && "MANYCHAT_API_KEY"].filter(
     Boolean,
   ) as string[];
+  const kapsoMissing = [
+    !has(env.KAPSO_API_KEY) && "KAPSO_API_KEY",
+    !has(env.KAPSO_PHONE_NUMBER_ID) && "KAPSO_PHONE_NUMBER_ID",
+    !has(env.KAPSO_WEBHOOK_SECRET) && "KAPSO_WEBHOOK_SECRET",
+  ].filter(Boolean) as string[];
   const whatsappCloudMissing = [
     !has(env.WHATSAPP_PHONE_NUMBER_ID) && "WHATSAPP_PHONE_NUMBER_ID",
     !has(env.WHATSAPP_ACCESS_TOKEN) && "WHATSAPP_ACCESS_TOKEN",
@@ -49,6 +54,16 @@ function channelStatuses(env: Env): ChannelStatus[] {
   ].filter(Boolean) as string[];
 
   return [
+    {
+      id: "kapso",
+      name: "WhatsApp (Kapso)",
+      icon: "message-circle",
+      desc: "WhatsApp Business vía Kapso — intake Realtor con botones y webhook firmado.",
+      ok: kapsoMissing.length === 0,
+      missing: kapsoMissing,
+      webhookPath: "/webhooks/kapso",
+      howTo: "En Kapso: registra este endpoint, activa Message received y usa el mismo Signing secret como KAPSO_WEBHOOK_SECRET.",
+    },
     {
       id: "telegram",
       name: "Telegram",
