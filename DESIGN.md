@@ -121,3 +121,15 @@ Short wordmark, one focused demo call to action, and no busy marketing menu.
 - **Don't** invent performance metrics, testimonials or customer logos.
 - **Don't** use generic mansion photography as a substitute for product proof.
 - **Don't** imply that the AI publishes ads, sends campaigns or makes decisions without a Realtor.
+
+---
+
+## Dashboard variant: Private Office
+
+Client workspaces use a separate visual language so the dashboard is recognizably Hawk Guru Realtor Suite rather than a re-labeled generic bot panel. The use scene is a Realtor reviewing a live day of leads and properties in a calm private office.
+
+- **Field:** limestone `#f4f1eb` with white workspace panels.
+- **Structure:** ink-blue `#142e3b` slim monogram rail; it replaces the wide command-center sidebar.
+- **Signal:** copper `#b85d3f` is reserved for the active destination and primary action. Green remains a semantic success state.
+- **Typography:** Manrope is the working UI face. Roboto Mono is reserved for compact operational data.
+- **Behavior:** the existing route model, tier gates, data and integrations stay unchanged. Desktop uses a 76px icon rail; mobile keeps an accessible horizontal navigation strip.

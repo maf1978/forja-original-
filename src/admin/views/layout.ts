@@ -1,3 +1,9 @@
+// HAWK GURU REALTOR DESK — direction contract
+// THESIS: a private Realtor office, not a generic bot control center.
+// OWN-WORLD: limestone surfaces, ink-blue navigation and copper as the action signal.
+// STORY: each page frames leads, listings and follow-ups as decisions to review.
+// FIRST VIEWPORT: a slim monogram rail, a calm workspace header and the day's work.
+// FORM: private-office desk, candidate 3 from the operated-surface structural pass.
 // Dashboard shell for Hawk Guru Realtor Suite: an operational command center
 // for pipeline, conversations and lead intelligence.
 // lines. Design tokens are exposed both as CSS custom properties (for inline
@@ -66,7 +72,7 @@ const NAV: Section[] = [
 const HEAD_ASSETS = `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -74,15 +80,15 @@ const HEAD_ASSETS = `
       theme: {
         extend: {
           colors: {
-            bg: "#10130e", panel: "#171b14", panel2: "#20261b", raise: "#293022",
-            line: "#35402c", linelit: "#506044",
-            accent: { DEFAULT: "#bff549", soft: "rgba(191,245,73,.14)" }, accent2: "#e6ffab",
-            cream: "#f1f5e9", muted: "#b4bda8", dim: "#78816f", ok: "#8fd95d",
-            info: "#83b5ff", bad: "#ff8d7f", violet: "#c9a8ff",
+            bg: "#f4f1eb", panel: "#ffffff", panel2: "#edf1f2", raise: "#e3e8e8",
+            line: "#d4dcda", linelit: "#aab8b6",
+            accent: { DEFAULT: "#b85d3f", soft: "rgba(184,93,63,.10)" }, accent2: "#17465a",
+            cream: "#142e3b", muted: "#536570", dim: "#74848a", ok: "#278060",
+            info: "#2f6d8a", bad: "#b9423a", violet: "#7665a8",
           },
           fontFamily: {
-            display: ["'Space Grotesk'", "ui-sans-serif", "system-ui", "sans-serif"],
-            mono: ["'JetBrains Mono'", "ui-monospace", "monospace"],
+            display: ["'Manrope'", "ui-sans-serif", "system-ui", "sans-serif"],
+            mono: ["'Roboto Mono'", "ui-monospace", "monospace"],
           },
         },
       },
@@ -97,22 +103,22 @@ const HEAD_ASSETS = `
 const GLOBAL_STYLE = `
 <style>
   :root{
-    --bg:#10130e; --panel:#171b14; --panel2:#20261b; --raise:#293022;
-    --line:#35402c; --linelit:#506044;
-    --accent:#bff549; --accent-2:#e6ffab; --accent-soft:rgba(191,245,73,.14);
-    --cream:#f1f5e9; --muted:#b4bda8; --dim:#78816f;
-    --ok:#8fd95d; --info:#83b5ff; --bad:#ff8d7f; --violet:#c9a8ff;
+    --bg:#f4f1eb; --panel:#ffffff; --panel2:#edf1f2; --raise:#e3e8e8;
+    --line:#d4dcda; --linelit:#aab8b6;
+    --accent:#b85d3f; --accent-2:#17465a; --accent-soft:rgba(184,93,63,.10);
+    --cream:#142e3b; --muted:#536570; --dim:#74848a;
+    --ok:#278060; --info:#2f6d8a; --bad:#b9423a; --violet:#7665a8;
     /* legacy aliases kept so mockup-derived snippets keep working */
-    --border:#352a1d; --border-lit:#4c3a26; --green:#7fb77e; --blue:#7aa2d6; --red:#d97a6a;
+    --border:#d4dcda; --border-lit:#aab8b6; --green:#278060; --blue:#2f6d8a; --red:#b9423a;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);
-    font-family:'JetBrains Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased}
+    font-family:'Manrope',ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
   a{color:var(--accent);text-decoration:none}
   a:hover{color:var(--accent-2)}
   ::-webkit-scrollbar{width:10px;height:10px}
   ::-webkit-scrollbar-track{background:var(--bg)}
-  ::-webkit-scrollbar-thumb{background:var(--linelit);border-radius:0}
+  ::-webkit-scrollbar-thumb{background:var(--linelit);border-radius:999px}
   ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
   input,textarea,select{font-family:inherit}
   input::placeholder,textarea::placeholder{color:var(--dim)}
@@ -128,22 +134,20 @@ const GLOBAL_STYLE = `
   @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes toastOut{to{opacity:0;transform:translateY(8px);visibility:hidden}}
 
-  /* scanline overlay (applied to <body>) */
   .scanlines::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;
-    background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,0,0,.12) 3px,rgba(0,0,0,0) 4px);
-    opacity:.5;mix-blend-mode:multiply}
+    background:linear-gradient(90deg,transparent 0,rgba(23,70,90,.018) 50%,transparent 100%)}
 
   /* sidebar nav */
-  .navlink:hover{background:var(--panel2);color:var(--cream)}
-  .navlink:hover [data-lucide]{color:var(--accent)}
+  .navlink:hover{background:rgba(255,255,255,.1);color:#fff}
+  .navlink:hover [data-lucide]{color:#fff}
 
   /* entrance + brutalist buttons */
-  .card{animation:rise .4s cubic-bezier(.16,1,.3,1) both}
+  .card{animation:rise .3s cubic-bezier(.16,1,.3,1) both;border-radius:14px}
   .bigbtn{transition:transform .12s ease,box-shadow .12s ease}
-  .bigbtn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--linelit)}
-  .bigbtn:active{transform:translate(0,0);box-shadow:2px 2px 0 var(--linelit)}
+  .bigbtn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(20,46,59,.16)}
+  .bigbtn:active{transform:translateY(0);box-shadow:none}
   .ghostbtn:hover{border-color:var(--accent);color:var(--cream);background:var(--accent-soft)}
-  .glow{text-shadow:0 0 22px var(--accent-soft),0 0 40px rgba(240,122,63,.1)}
+  .glow{letter-spacing:-.045em}
 
   /* list / table rows + interactive bits reused across views */
   .convrow:hover{background:var(--panel2)}
@@ -177,16 +181,16 @@ const GLOBAL_STYLE = `
     animation:toastIn .25s cubic-bezier(.16,1,.3,1),toastOut .3s ease-in 2.4s forwards}
 
   /* app shell */
-  .shell{min-height:100vh;display:grid;grid-template-columns:248px 1fr;background:var(--bg)}
-  .sb{border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
-  .sb-nav{padding:14px 12px;display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto}
-  .sb-sec{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;padding:14px 10px 6px}
-  .live-pill{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);padding:8px 13px}
+  .shell{min-height:100vh;display:grid;grid-template-columns:76px minmax(0,1fr);background:var(--bg)}
+  .sb{background:#142e3b;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:40;box-shadow:8px 0 26px rgba(20,46,59,.09)}
+  .sb-nav{padding:16px 10px;display:flex;flex-direction:column;gap:5px;flex:1;overflow-y:auto}
+  .sb-sec{height:15px;margin:4px 0;color:transparent!important;font-size:0;border-top:1px solid rgba(255,255,255,.18)}
+  .live-pill{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 11px;box-shadow:0 3px 12px rgba(20,46,59,.06)}
 
   @media (max-width:767px){
     .shell{grid-template-columns:1fr}
-    .sb{position:sticky;top:0;height:auto;flex-direction:row;align-items:center;border-right:none;border-bottom:1px solid var(--line);overflow-x:auto}
-    .sb-brand{flex:none;border-bottom:none !important;border-right:1px solid var(--line)}
+    .sb{position:sticky;top:0;height:auto;flex-direction:row;align-items:center;border-right:none;overflow-x:auto}
+    .sb-brand{flex:none;border-bottom:none !important;border-right:1px solid rgba(255,255,255,.18)}
     .sb-nav{flex-direction:row;align-items:center;gap:4px;padding:8px 10px;overflow-y:visible;overflow-x:auto}
     .sb-sec{display:none}
     .sb-foot{display:none}
@@ -221,13 +225,13 @@ const GLOBAL_SCRIPT = `
 
 function navItem(item: Item, active: boolean): string {
   const base =
-    "display:flex;align-items:center;gap:11px;padding:9px 10px;font-size:13px;";
+    "display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin:auto;border-radius:12px;";
   const style = active
-    ? base + "color:var(--cream);background:var(--accent-soft);border-left:2px solid var(--accent);font-weight:600"
-    : base + "color:var(--muted);border-left:2px solid transparent";
-  const iconColor = active ? "var(--accent)" : "var(--dim)";
-  return `<a href="${item.href}" class="navlink" style="${style}">
-    <i data-lucide="${item.icon}" width="17" height="17" style="color:${iconColor}"></i> ${item.label}
+    ? base + "color:#fff;background:var(--accent);box-shadow:0 5px 13px rgba(0,0,0,.2)"
+    : base + "color:rgba(255,255,255,.56);background:transparent";
+  const iconColor = active ? "#fff" : "rgba(255,255,255,.64)";
+  return `<a href="${item.href}" class="navlink" style="${style}" title="${item.label}" aria-label="${item.label}">
+    <i data-lucide="${item.icon}" width="18" height="18" style="color:${iconColor}"></i>
   </a>`;
 }
 
@@ -235,10 +239,9 @@ function navItem(item: Item, active: boolean): string {
 // la página de upgrade en vez de a la vista real. Se ven, pero invitan a subir.
 function navItemLocked(item: Item): string {
   const base =
-    "display:flex;align-items:center;gap:11px;padding:9px 10px;font-size:13px;color:var(--dim);border-left:2px solid transparent";
-  return `<a href="${UPGRADE_URL}" class="navlink" style="${base}" title="Disponible en Pro">
-    <i data-lucide="lock" width="15" height="15" style="color:var(--dim)"></i> ${item.label}
-    <span style="margin-left:auto;font-size:8.5px;letter-spacing:.14em;color:var(--accent2);border:1px solid var(--line);padding:1px 5px">PRO</span>
+    "display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin:auto;border-radius:12px;color:rgba(255,255,255,.3)";
+  return `<a href="${UPGRADE_URL}" class="navlink" style="${base}" title="${item.label}: disponible en Pro" aria-label="${item.label}: disponible en Pro">
+    <i data-lucide="lock" width="16" height="16" style="color:rgba(255,255,255,.35)"></i>
   </a>`;
 }
 
@@ -259,40 +262,24 @@ function sidebar(activeTab: string, pro: boolean, niche: NichePack | null): stri
     navigation[1].items.splice(5, 0, { id: "openhouses", label: "Open Houses", href: "/admin/open-houses", icon: "qr-code" });
   }
   const sections = navigation.map((sec) => {
-    const hasActive = sec.items.some((i) => i.id === activeTab);
-    const labelColor = hasActive ? "var(--accent)" : "var(--dim)";
     const items = sec.items
       .map((raw) => {
         const i = applyNiche(raw, niche);
         return locked(i.id) ? navItemLocked(i) : navItem(i, i.id === activeTab);
       })
       .join("");
-    return `<div class="sb-sec" style="color:${labelColor}">${sec.label}</div>${items}`;
+    return `<div class="sb-sec" aria-hidden="true">${sec.label}</div>${items}`;
   }).join("");
 
   return `<aside class="sb">
-    <div class="sb-brand" style="padding:20px 18px 16px;border-bottom:1px solid var(--line)">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:34px;height:34px;flex:none;border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;background:var(--accent-soft);box-shadow:3px 3px 0 var(--linelit)">
-          <i data-lucide="house" width="18" height="18" style="color:var(--accent)"></i>
-        </div>
-        <div style="line-height:1.05">
-          <div style="font-family:'Space Grotesk';font-weight:700;font-size:14px;letter-spacing:-.02em">HAWK GURU</div>
-          <div style="font-size:9px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase">REALTOR SUITE</div>
-        </div>
-      </div>
+    <div class="sb-brand" style="padding:16px 10px;border-bottom:1px solid rgba(255,255,255,.18)">
+      <a href="/admin/overview" title="Hawk Guru Realtor Suite" aria-label="Hawk Guru Realtor Suite" style="display:grid;place-items:center;width:48px;height:48px;margin:auto;border-radius:14px;background:#fff;color:#142e3b;font-family:'Manrope';font-weight:800;font-size:15px;letter-spacing:-.08em;box-shadow:0 6px 16px rgba(0,0,0,.18)">HG</a>
     </div>
     <nav class="sb-nav">${sections}</nav>
-    <div class="sb-foot" style="padding:14px;border-top:1px solid var(--line)">
-      <div style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line)">
-        <div style="width:30px;height:30px;flex:none;background:var(--raise);border:1px solid var(--linelit);display:flex;align-items:center;justify-content:center;color:var(--accent)">
-          <i data-lucide="sparkles" width="16" height="16"></i>
-        </div>
-        <div style="line-height:1.2;overflow:hidden">
-          <div style="font-size:12px;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">AI Realtor Console</div>
-          <div style="font-size:10px;color:var(--dim)">operación activa</div>
-        </div>
-      </div>
+    <div class="sb-foot" style="padding:12px 10px;border-top:1px solid rgba(255,255,255,.18)">
+      <a href="/admin/agente" title="AI Concierge" aria-label="AI Concierge" style="display:grid;place-items:center;width:48px;height:48px;margin:auto;border-radius:12px;background:rgba(255,255,255,.08);color:#fff">
+        <i data-lucide="sparkles" width="18" height="18"></i>
+      </a>
     </div>
   </aside>`;
 }
@@ -325,18 +312,18 @@ export function layout(opts: { title: string; activeTab: string; body: string; e
   <div class="shell">
     ${sidebar(opts.activeTab, pro, niche)}
     <div style="display:flex;flex-direction:column;min-width:0">
-      <header style="position:sticky;top:0;z-index:30;background:rgba(20,16,9,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 26px;display:flex;align-items:center;gap:20px">
+      <header style="position:sticky;top:0;z-index:30;background:rgba(244,241,235,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:15px 30px;display:flex;align-items:center;gap:20px">
         <div style="min-width:0">
-          <div style="font-size:10px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase">${section.label} / ${item.label}</div>
-          <h1 style="font-family:'Space Grotesk';font-weight:700;font-size:22px;margin:2px 0 0;letter-spacing:-.02em">${item.label}</h1>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--dim);text-transform:uppercase">Hawk Guru Realtor Suite <span style="color:var(--linelit);padding:0 5px">/</span> ${section.label}</div>
+          <h1 style="font-family:'Manrope';font-weight:800;font-size:21px;margin:3px 0 0;letter-spacing:-.035em">${item.label}</h1>
         </div>
         <div id="proj-switcher" style="margin-left:auto"></div>
         <div class="live-pill">
-          <span style="width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.8s ease-in-out infinite,ring 2s infinite"></span>
-          <span style="font-size:11px;font-weight:600;letter-spacing:.04em">SUITE EN LÍNEA</span>
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 1.8s ease-in-out infinite,ring 2s infinite"></span>
+          <span style="font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--cream)">OPERACIÓN ACTIVA</span>
         </div>
       </header>
-      <main style="padding:22px 26px;min-width:0">${opts.body}</main>
+      <main style="padding:28px 30px 44px;min-width:0;max-width:1680px;width:100%;margin:0 auto">${opts.body}</main>
     </div>
   </div>
   <div id="modal-root"></div>
@@ -352,8 +339,8 @@ export function layout(opts: { title: string; activeTab: string; body: string; e
       opts += '<option value="' + p.url.replace(/"/g,'&quot;') + '">' + p.name.replace(/</g,'&lt;') + '</option>';
     });
     el.innerHTML = '<select onchange="if(this.value.indexOf(\'http\')===0)window.location=this.value" ' +
-      'style="background:rgba(20,16,9,.9);color:var(--fg,#e8e0cf);border:1px solid var(--line);border-radius:8px;' +
-      'padding:6px 10px;font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.04em;cursor:pointer" ' +
+      'style="background:#fff;color:var(--cream);border:1px solid var(--line);border-radius:9px;' +
+      'padding:7px 10px;font-family:\'Manrope\',sans-serif;font-size:11px;font-weight:600;letter-spacing:.01em;cursor:pointer" ' +
       'title="Cambiar de proyecto">' + opts + '</select>';
   }).catch(function(){});
   </script>
@@ -377,7 +364,7 @@ export function renderUpgrade(env: Env, feature?: string): string {
     .map(
       ([icon, title, desc]) => `<div style="display:flex;gap:12px;padding:14px;border:1px solid var(--line);background:var(--panel)">
         <i data-lucide="${icon}" width="20" height="20" style="color:var(--accent);flex:none;margin-top:2px"></i>
-        <div><div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;margin-bottom:3px">${title}</div>
+        <div><div style="font-family:'Manrope';font-weight:700;font-size:14px;margin-bottom:3px">${title}</div>
         <div style="font-size:12.5px;color:var(--muted);line-height:1.5">${desc}</div></div>
       </div>`,
     )
@@ -389,7 +376,7 @@ export function renderUpgrade(env: Env, feature?: string): string {
         <div style="display:inline-flex;align-items:center;gap:8px;border:1px solid var(--accent);color:var(--accent2);font-size:10px;letter-spacing:.16em;padding:4px 10px;text-transform:uppercase">
           <i data-lucide="lock" width="13" height="13"></i> Función Pro
         </div>
-        <h2 style="font-family:'Space Grotesk';font-weight:700;font-size:24px;letter-spacing:-.02em;margin:14px 0 6px">
+        <h2 style="font-family:'Manrope';font-weight:800;font-size:24px;letter-spacing:-.02em;margin:14px 0 6px">
           ${feature ? `“${feature}” es parte de Pro` : "Desbloquea el panel Pro"}
         </h2>
         <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 20px;max-width:560px">
@@ -398,7 +385,7 @@ export function renderUpgrade(env: Env, feature?: string): string {
         </p>
         <div style="display:grid;gap:10px;margin-bottom:22px">${perks}</div>
         <a href="/admin/pipelines" class="bigbtn"
-          style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);border:1px solid var(--accent);color:#1a1206;box-shadow:4px 4px 0 var(--linelit);padding:12px 20px;font-family:'Space Grotesk';font-weight:700;font-size:14px">
+          style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);border:1px solid var(--accent);color:#fff;box-shadow:4px 4px 0 var(--linelit);padding:12px 20px;font-family:'Manrope';font-weight:800;font-size:14px">
           <i data-lucide="kanban-square" width="17" height="17"></i> Abrir Pipelines
         </a>
       </div>
@@ -423,7 +410,7 @@ export function loginPage(error?: string): string {
         <i data-lucide="terminal" width="18" height="18" style="color:var(--accent)"></i>
       </div>
       <div>
-        <h1 style="font-family:'Space Grotesk';font-weight:700;font-size:18px;margin:0;letter-spacing:-.02em">Hawk Guru Realtor Suite</h1>
+        <h1 style="font-family:'Manrope';font-weight:800;font-size:18px;margin:0;letter-spacing:-.02em">Hawk Guru Realtor Suite</h1>
         <p style="font-size:11px;color:var(--dim);margin:2px 0 0">Te mandamos un link a tu email para entrar.</p>
       </div>
     </div>
@@ -431,7 +418,7 @@ export function loginPage(error?: string): string {
     <input name="email" type="email" required placeholder="tu@email.com"
       style="width:100%;background:var(--bg);border:1px solid var(--line);color:var(--cream);padding:10px 12px;font-size:13px;outline:none;margin-bottom:14px">
     <button class="bigbtn" type="submit"
-      style="width:100%;background:var(--accent);border:1px solid var(--accent);color:#1a1206;box-shadow:4px 4px 0 var(--linelit);padding:11px;font-family:'Space Grotesk';font-weight:700;font-size:13px;cursor:pointer">
+      style="width:100%;background:var(--accent);border:1px solid var(--accent);color:#fff;box-shadow:4px 4px 0 var(--linelit);padding:11px;font-family:'Manrope';font-weight:800;font-size:13px;cursor:pointer">
       Mandar link
     </button>
   </form>
