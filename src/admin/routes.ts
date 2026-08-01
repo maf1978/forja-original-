@@ -37,7 +37,7 @@ import { analyzeConversations } from "../insights/analyzer";
 import { renderAgentePage, renderAgenteCanvas, renderNodeModal, toggleTool, toastOob } from "./views/agente";
 import { renderKbList, renderKbEditor } from "./views/kb";
 import { KbDocsRepo, indexDoc, removeDocVectors, reindexAll, MAX_DOC_CHARS } from "../kb/docs";
-import { createMarketingDraft, inspectListing, MarketingDraftsRepo, type MarketingFormat } from "../marketing-compliance/copilot";
+import { createMarketingDraft, inspectListing, MarketingDraftsRepo, type MarketingFormat, type MarketingLanguage } from "../marketing-compliance/copilot";
 import { renderMarketingCopilot } from "./views/marketing";
 import { renderMejoras } from "./views/mejoras";
 import { runFlywheel, getLessons, saveLessons } from "../flywheel/detect";
@@ -374,18 +374,20 @@ adminApp.get("/pipelines", async (c) => {
 adminApp.get("/marketing/:id", async (c) => {
   const doc = await new KbDocsRepo(new Db(c.env.DB)).getById(c.req.param("id"));
   if (!doc || !doc.title.toLowerCase().startsWith("listing verificado")) return c.redirect("/admin/kb");
-  return c.html(renderMarketingCopilot(c.env, doc, inspectListing(doc), "instagram", undefined, await new MarketingDraftsRepo(new Db(c.env.DB)).listForListing(doc.id)));
+  return c.html(renderMarketingCopilot(c.env, doc, inspectListing(doc), "instagram", "es", undefined, await new MarketingDraftsRepo(new Db(c.env.DB)).listForListing(doc.id)));
 });
 
 adminApp.post("/marketing/:id", async (c) => {
   const doc = await new KbDocsRepo(new Db(c.env.DB)).getById(c.req.param("id"));
   if (!doc || !doc.title.toLowerCase().startsWith("listing verificado")) return c.redirect("/admin/kb");
-  const picked = String((await c.req.formData()).get("format") ?? "instagram");
-  const format: MarketingFormat = ["mls", "instagram", "facebook", "reel", "open-house"].includes(picked) ? picked as MarketingFormat : "instagram";
-  const draft = await createMarketingDraft(c.env, doc, format);
+  const form = await c.req.formData();
+  const picked = String(form.get("format") ?? "instagram");
+  const format: MarketingFormat = ["mls", "instagram", "facebook", "reel", "open-house", "meta-ad"].includes(picked) ? picked as MarketingFormat : "instagram";
+  const language: MarketingLanguage = String(form.get("language")) === "en" ? "en" : "es";
+  const draft = await createMarketingDraft(c.env, doc, format, language);
   const repo = new MarketingDraftsRepo(new Db(c.env.DB));
   const saved = draft.draft ? await repo.create(doc.id, format, draft) : undefined;
-  return c.html(renderMarketingCopilot(c.env, doc, draft, format, saved, await repo.listForListing(doc.id)));
+  return c.html(renderMarketingCopilot(c.env, doc, draft, format, language, saved, await repo.listForListing(doc.id)));
 });
 
 adminApp.post("/marketing/drafts/:id/status", async (c) => {

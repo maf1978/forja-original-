@@ -10,7 +10,8 @@ import { loadLlmOverrides } from "../settings-loader";
 import type { KbDoc } from "../kb/docs";
 import { Db } from "../db/client";
 
-export type MarketingFormat = "mls" | "instagram" | "facebook" | "reel" | "open-house";
+export type MarketingFormat = "mls" | "instagram" | "facebook" | "reel" | "open-house" | "meta-ad";
+export type MarketingLanguage = "es" | "en";
 
 export type MarketingDraft = {
   status: "ready_for_review" | "requires_confirmation";
@@ -61,16 +62,19 @@ export function inspectListing(doc: KbDoc): MarketingDraft {
   };
 }
 
-export async function createMarketingDraft(env: Env, doc: KbDoc, format: MarketingFormat): Promise<MarketingDraft> {
+export async function createMarketingDraft(env: Env, doc: KbDoc, format: MarketingFormat, language: MarketingLanguage = "es"): Promise<MarketingDraft> {
   const result = inspectListing(doc);
   if (result.status !== "ready_for_review") return result;
   const { model } = createModel(env, "fast", await loadLlmOverrides(env));
-  const label: Record<MarketingFormat, string> = { mls: "descripción MLS", instagram: "caption de Instagram", facebook: "post de Facebook", reel: "guion corto para Reel", "open-house": "promoción de Open House" };
+  const label: Record<MarketingFormat, string> = { mls: "descripción MLS", instagram: "caption de Instagram", facebook: "post de Facebook", reel: "guion corto para Reel", "open-house": "promoción de Open House", "meta-ad": "copy de Meta Ads para vivienda" };
+  const languageLabel = language === "en" ? "English" : "español";
+  const reviewLine = language === "en" ? "Draft — requires Realtor approval before publishing." : "Borrador — requiere aprobación del Realtor antes de publicar.";
   const response = await generateText({
     model,
     maxOutputTokens: 420,
-    system: "Eres Marketing Compliance Copilot para un Realtor. Solo creas borradores para revisión humana; no respondes leads ni controlas canales. Usa exclusivamente los hechos proporcionados. No inventes datos, distancias, escuelas, disponibilidad, precio, financiamiento, tasas, premios o características. Evita lenguaje que indique preferencia, limitación o discriminación por clases protegidas. No uses descriptores demográficos. Si un dato no está disponible, omítelo. Devuelve el borrador en español y termina exactamente con: 'Borrador — requiere aprobación del Realtor antes de publicar.'",
+    system: `Eres Marketing Compliance Copilot para un Realtor. Solo creas borradores para revisión humana; no respondes leads ni controlas canales. Usa exclusivamente los hechos proporcionados. No inventes datos, distancias, escuelas, disponibilidad, precio, financiamiento, tasas, premios o características. Evita lenguaje que indique preferencia, limitación o discriminación por clases protegidas. No uses descriptores demográficos. Si un dato no está disponible, omítelo. Para Meta Ads, crea solamente copy y nunca sugieras segmentar, excluir o inferir audiencias por atributos protegidos. Devuelve el borrador en ${languageLabel} y termina exactamente con: '${reviewLine}'`,
     prompt: `Formato solicitado: ${label[format]}\n\nHechos verificados:\n${Object.entries(result.fields).map(([key, value]) => `${key}: ${value || "No confirmado"}`).join("\n")}`,
   });
-  return { ...result, draft: response.text.trim() };
+  const complianceFlags = format === "meta-ad" ? [...result.complianceFlags, "Meta Ads: revisar categoría especial Housing y no usar segmentación o exclusiones basadas en clases protegidas."] : result.complianceFlags;
+  return { ...result, complianceFlags, draft: response.text.trim() };
 }
