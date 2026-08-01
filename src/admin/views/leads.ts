@@ -27,6 +27,11 @@ export async function renderLeads(env: Env): Promise<string> {
      LEFT JOIN realtor_tags t ON t.id=lt.tag_id GROUP BY r.lead_id`,
   );
   const dossiers = new Map(dossierRows.map((r) => [r.lead_id, r]));
+  const socialRows = await db.all<{ conversation_id: string; source_type: string; content_id: string | null; campaign_id: string | null; ad_id: string | null }>(
+    "SELECT conversation_id, source_type, content_id, campaign_id, ad_id FROM social_events ORDER BY created_at DESC",
+  );
+  const socialByConversation = new Map<string, { source_type: string; content_id: string | null; campaign_id: string | null; ad_id: string | null }>();
+  for (const row of socialRows) if (!socialByConversation.has(row.conversation_id)) socialByConversation.set(row.conversation_id, row);
 
   const statusLabel = (s: Lead["status"]) => niche.statusLabels[s];
 
@@ -36,6 +41,7 @@ export async function renderLeads(env: Env): Promise<string> {
     { h: "Fecha", w: "94px", cell: (l) => `<span class="text-dim">${new Date(l.created_at).toLocaleDateString("es-MX")}</span>` },
     { h: "Nombre", w: "minmax(120px,1.1fr)", cell: (l) => `<span class="text-cream" style="display:flex;align-items:center;gap:7px"><i data-lucide="chevron-right" width="13" height="13" class="chev" style="flex:none;transition:transform .12s ease"></i>${esc(l.name) || "(sin nombre)"}</span>` },
     { h: "Contacto", w: "minmax(110px,1fr)", cell: (l) => `<span class="text-muted">${esc(l.contact) || "—"}</span>` },
+    { h: "Origen", w: "minmax(92px,.8fr)", cell: (l) => { const s = l.conversation_id ? socialByConversation.get(l.conversation_id) : undefined; return `<span class="text-muted">${s ? esc(s.source_type.replaceAll("_", " ")) : "Directo"}</span>`; } },
     { h: "Readiness", w: "minmax(110px,1fr)", cell: (l) => { const d=dossiers.get(l.id); return `<span style="color:${(d?.score ?? 0)>=60?"var(--accent)":"var(--muted)"}">${d ? `${d.score}/100 · ${(d.tags ?? "warm").split(',').slice(-2).join(' · ')}` : "Por calificar"}</span>`; } },
   ];
   if (niche.columns.length) {
@@ -65,6 +71,7 @@ export async function renderLeads(env: Env): Promise<string> {
     .map((l) => {
       const meta = leadMetadata(l);
       const dossier = dossiers.get(l.id);
+      const social = l.conversation_id ? socialByConversation.get(l.conversation_id) : undefined;
       const fullDate = new Date(l.created_at).toLocaleString("es-MX");
       const convLink = l.conversation_id
         ? `<a href="/admin/conversations?c=${encodeURIComponent(l.conversation_id)}" class="text-accent" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;text-decoration:none">
@@ -84,6 +91,7 @@ export async function renderLeads(env: Env): Promise<string> {
           <div style="max-width:760px;display:flex;flex-direction:column;gap:14px;padding-top:14px">
             ${metaRows ? `<div><div style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Datos</div><div style="display:flex;flex-wrap:wrap;gap:6px 18px">${metaRows}</div></div>` : ""}
             ${dossier ? `<div style="display:grid;grid-template-columns:110px 1fr;gap:10px;border:1px solid var(--line);background:var(--panel);padding:12px"><div><div style="font-family:'Space Grotesk';font-size:25px;color:var(--accent)">${dossier.score}<span style="font-size:10px;color:var(--dim)"> /100</span></div><div style="font-size:9px;color:var(--dim);letter-spacing:.12em">READINESS</div></div><div><b style="font-size:11px">Siguiente acción</b><div class="text-muted" style="font-size:12px;margin-top:3px">${esc(dossier.next_action || "Revisar perfil")}</div><div class="text-dim" style="font-size:10px;margin-top:5px">${esc(dossier.score_reason || "Sin explicación")}</div></div></div>` : ""}
+            ${social ? `<div style="border:1px solid var(--line);background:var(--panel);padding:12px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent);margin-bottom:6px">SOCIAL ATTRIBUTION</div><div style="font-size:12px;color:var(--cream)">${esc(social.source_type.replaceAll("_", " "))}</div><div class="text-dim" style="font-size:10px;margin-top:4px">${[social.content_id && `contenido: ${social.content_id}`, social.campaign_id && `campaña: ${social.campaign_id}`, social.ad_id && `ad: ${social.ad_id}`].filter(Boolean).map(esc).join(" · ") || "Sin referencia de campaña"}</div></div>` : ""}
             <div>
               <div style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Resumen de la IA</div>
               <div class="text-cream" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${esc(l.intent)}</div>
