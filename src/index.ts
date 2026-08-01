@@ -313,11 +313,12 @@ export default {
     const { checkBotHealth } = await import("./watchdog");
     await checkBotHealth(env).catch((e) => console.error("watchdog:", e));
 
-    // Los trabajos nocturnos SOLO corren en el tick diario (3am UTC) — un tick
-    // más frecuente (si el miembro lo configura) no debe purgar/analizar de más.
-    if (event.cron && event.cron !== "0 3 * * *") return;
+    // El único cron corre cada 30 min. La rutina pesada se limita a la primera
+    // media hora de las 03:00 UTC para no gastar un segundo trigger gratuito.
+    const now = new Date();
+    if (now.getUTCHours() !== 3 || now.getUTCMinutes() >= 30) return;
 
-    // Daily cron (wrangler.toml: "0 3 * * *") — purge messages older than 90 days.
+    // Rutina nocturna — purge messages older than 90 days.
     await purgeOldMessages(env);
     // Corrida nocturna del Analista de insights (F2). No debe tumbar la purga.
     await analyzeConversations(env, { limit: 50 }).catch((e) => console.error("insights:", e));

@@ -60,8 +60,9 @@ DASHBOARD_BASE_URL = "https://hawk-guru-realtor-suite.marcos-ferrero001.workers.
 #                              set with: wrangler secret put CONTROL_PLANE_TOKEN
 #   CONTROL_PLANE_URL          optional (var) — base URL of the control plane (future reports / license check)
 
-# Temporalmente sin cron: esta cuenta ya alcanzó el límite de 5 triggers.
-# Restablecer al liberar un trigger para activar purga, insights y follow-ups.
+# Un solo trigger gratuito: follow-ups/health cada 30 min y rutina nocturna a 03:00 UTC.
+[triggers]
+crons = ["*/30 * * * *"]
 
 # DASHBOARD_PASSWORD  (secret) — HTTP Basic Auth password for the admin dashboard; username is always "admin".
 # Set it with: wrangler secret put DASHBOARD_PASSWORD
