@@ -27,6 +27,10 @@ export async function renderLeads(env: Env): Promise<string> {
      LEFT JOIN realtor_tags t ON t.id=lt.tag_id GROUP BY r.lead_id`,
   );
   const dossiers = new Map(dossierRows.map((r) => [r.lead_id, r]));
+  const insightRows = await db.all<{ conversation_id: string; sentiment: string | null; resolution: string | null; summary: string | null; sale_opportunity: number | null }>(
+    "SELECT conversation_id, sentiment, resolution, summary, sale_opportunity FROM conversation_insights",
+  );
+  const insightsByConversation = new Map(insightRows.map((r) => [r.conversation_id, r]));
   const socialRows = await db.all<{ conversation_id: string; source_type: string; content_id: string | null; campaign_id: string | null; ad_id: string | null }>(
     "SELECT conversation_id, source_type, content_id, campaign_id, ad_id FROM social_events ORDER BY created_at DESC",
   );
@@ -72,6 +76,14 @@ export async function renderLeads(env: Env): Promise<string> {
       const meta = leadMetadata(l);
       const dossier = dossiers.get(l.id);
       const social = l.conversation_id ? socialByConversation.get(l.conversation_id) : undefined;
+      const insight = l.conversation_id ? insightsByConversation.get(l.conversation_id) : undefined;
+      const coach = (() => {
+        if ((insight?.sentiment === "frustrated" || insight?.sentiment === "angry")) return ["Escalar a humano", "Hay fricción en la conversación. Responde personalmente antes de continuar el flujo."];
+        if ((dossier?.score ?? 0) >= 70) return ["Contactar hoy", "Lead de alta intención. Propón llamada, showing o valoración con un horario concreto."];
+        if (social?.source_type === "meta_ad") return ["Conectar el anuncio con la necesidad", "Menciona el tema del anuncio y confirma zona, presupuesto o propiedad antes de sugerir opciones."];
+        if (insight?.sale_opportunity) return ["Resolver la oportunidad abierta", "Hay intención sin cierre. Haz una pregunta concreta para desbloquear el siguiente paso."];
+        return ["Completar perfil", "Pide solo el dato que falta para poder recomendar una propiedad, valoración o cita."];
+      })();
       const fullDate = new Date(l.created_at).toLocaleString("es-MX");
       const convLink = l.conversation_id
         ? `<a href="/admin/conversations?c=${encodeURIComponent(l.conversation_id)}" class="text-accent" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;text-decoration:none">
@@ -92,6 +104,7 @@ export async function renderLeads(env: Env): Promise<string> {
             ${metaRows ? `<div><div style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Datos</div><div style="display:flex;flex-wrap:wrap;gap:6px 18px">${metaRows}</div></div>` : ""}
             ${dossier ? `<div style="display:grid;grid-template-columns:110px 1fr;gap:10px;border:1px solid var(--line);background:var(--panel);padding:12px"><div><div style="font-family:'Space Grotesk';font-size:25px;color:var(--accent)">${dossier.score}<span style="font-size:10px;color:var(--dim)"> /100</span></div><div style="font-size:9px;color:var(--dim);letter-spacing:.12em">READINESS</div></div><div><b style="font-size:11px">Siguiente acción</b><div class="text-muted" style="font-size:12px;margin-top:3px">${esc(dossier.next_action || "Revisar perfil")}</div><div class="text-dim" style="font-size:10px;margin-top:5px">${esc(dossier.score_reason || "Sin explicación")}</div></div></div>` : ""}
             ${social ? `<div style="border:1px solid var(--line);background:var(--panel);padding:12px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent);margin-bottom:6px">SOCIAL ATTRIBUTION</div><div style="font-size:12px;color:var(--cream)">${esc(social.source_type.replaceAll("_", " "))}</div><div class="text-dim" style="font-size:10px;margin-top:4px">${[social.content_id && `contenido: ${social.content_id}`, social.campaign_id && `campaña: ${social.campaign_id}`, social.ad_id && `ad: ${social.ad_id}`].filter(Boolean).map(esc).join(" · ") || "Sin referencia de campaña"}</div></div>` : ""}
+            <div style="border:1px solid var(--accent);background:var(--accent-soft);padding:12px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent2);margin-bottom:6px">AI DEAL COACH · REVISAR ANTES DE ENVIAR</div><b style="font-size:12px;color:var(--cream)">${esc(coach[0])}</b><div class="text-muted" style="font-size:11px;line-height:1.45;margin-top:4px">${esc(coach[1])}</div>${insight?.summary ? `<div class="text-dim" style="font-size:10px;line-height:1.4;margin-top:7px">Insight: ${esc(insight.summary)}</div>` : ""}</div>
             <div>
               <div style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Resumen de la IA</div>
               <div class="text-cream" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${esc(l.intent)}</div>
