@@ -45,6 +45,8 @@ Cloudflare (~gratis, ~$5/mes con tráfico) y el cerebro es su propia llave de IA
 - `/reporte` — informe mensual de valor para el cliente.
 - `/exportar` — exporta leads y conversaciones (CSV/JSON).
 - `/actualizar-mi-bot` — trae la última versión conservando tu config.
+- `/superpoderes` — configura y verifica las capacidades Forja+, incluido el Blindaje
+  anti-invento. Antes de activarlo confirma que la base de conocimiento esté completa.
 
 ## ¿Quieres más? (Forja+)
 
