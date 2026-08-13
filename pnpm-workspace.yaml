@@ -1,0 +1,19 @@
+# Aprobacion de scripts de build (pnpm 10+). Sin esto, `pnpm install` sale con
+# ERR_PNPM_IGNORED_BUILDS, y eso bloquea CUALQUIER `pnpm <script>` — deploy incluido.
+# Ademas pnpm regenera este archivo con "set this to true or false" hasta que se
+# completa de verdad, asi que dejarlo a medias lo rompe en cada corrida.
+#
+# esbuild y workerd son los que wrangler necesita de verdad para bundlear y correr
+# el Worker. El resto son aceleradores nativos opcionales que este proyecto no usa,
+# y en false evitan correr scripts de instalacion sin necesidad.
+packages:
+  - .
+
+allowBuilds:
+  bufferutil: false
+  core-js-pure: false
+  esbuild: true
+  keccak: false
+  sharp: false
+  utf-8-validate: false
+  workerd: true
