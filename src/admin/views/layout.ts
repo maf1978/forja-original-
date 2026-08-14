@@ -79,12 +79,20 @@ const HEAD_ASSETS = `
     tailwind.config = {
       theme: {
         extend: {
+          // Apuntan a las CSS custom properties de :root — UNA sola fuente de
+          // verdad. Antes la paleta estaba escrita DOS veces (aqui y en :root) y
+          // podian desincronizarse: cambiar un token no movia nada en pantalla,
+          // porque las vistas usan sobre todo las clases de Tailwind.
+          //
+          // ok / info / bad / violet quedan literales A PROPOSITO: se usan con
+          // modificadores de opacidad (bg-ok/10) y eso no funciona con var().
           colors: {
-            bg: "#f4f1eb", panel: "#ffffff", panel2: "#edf1f2", raise: "#e3e8e8",
-            line: "#c7d1cf", linelit: "#8fa2a0",
-            accent: { DEFAULT: "#b85d3f", soft: "rgba(184,93,63,.10)" }, accent2: "#17465a",
-            cream: "#142e3b", muted: "#40535f", dim: "#5b6e76", ok: "#278060",
-            info: "#2f6d8a", bad: "#b9423a", violet: "#7665a8",
+            bg: "var(--bg)", panel: "var(--panel)", panel2: "var(--panel2)", raise: "var(--raise)",
+            line: "var(--line)", linelit: "var(--linelit)",
+            accent: { DEFAULT: "var(--accent)", ink: "var(--accent-ink)", soft: "var(--accent-soft)" },
+            accent2: "var(--accent-2)",
+            cream: "var(--cream)", muted: "var(--muted)", dim: "var(--dim)",
+            ok: "#5fd39b", info: "#6fc0e8", bad: "#ff8868", violet: "#b9a8f0",
           },
           fontFamily: {
             display: ["'Manrope'", "ui-sans-serif", "system-ui", "sans-serif"],
@@ -103,13 +111,19 @@ const HEAD_ASSETS = `
 const GLOBAL_STYLE = `
 <style>
   :root{
-    --bg:#f4f1eb; --panel:#ffffff; --panel2:#edf1f2; --raise:#e3e8e8;
-    --line:#c7d1cf; --linelit:#8fa2a0;
-    --accent:#b85d3f; --accent-2:#17465a; --accent-soft:rgba(184,93,63,.10);
-    --cream:#142e3b; --muted:#40535f; --dim:#5b6e76;
-    --ok:#278060; --info:#2f6d8a; --bad:#b9423a; --violet:#7665a8;
+    /* "Deal Desk After Dark" — la paleta oscura de DESIGN.md. Cada par
+       texto/fondo verificado contra WCAG AA (4.5 texto, 3.0 componentes). */
+    --bg:#09100d; --panel:#111a15; --panel2:#16211b; --raise:#1c2a22;
+    --line:#3a4f3d; --linelit:#516b54;
+    /* --on-accent es el texto que va ENCIMA del acento. Con lime va tinta
+       oscura, nunca blanco. Token semantico: si el tema cambia otra vez, los
+       botones no quedan ilegibles. */
+    --accent:#c7ff4d; --accent-ink:#c7ff4d; --on-accent:#09100d;
+    --accent-2:#9fe08a; --accent-soft:rgba(199,255,77,.12);
+    --cream:#dce7d7; --muted:#a8b8a6; --dim:#8a9a89;
+    --ok:#5fd39b; --info:#6fc0e8; --bad:#ff8868; --violet:#b9a8f0;
     /* legacy aliases kept so mockup-derived snippets keep working */
-    --border:#d4dcda; --border-lit:#aab8b6; --green:#278060; --blue:#2f6d8a; --red:#b9423a;
+    --border:#3a4f3d; --border-lit:#516b54; --green:#5fd39b; --blue:#6fc0e8; --red:#ff8868;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);
@@ -143,7 +157,7 @@ const GLOBAL_STYLE = `
   /* entrance + brutalist buttons */
   .card{animation:rise .3s cubic-bezier(.16,1,.3,1) both;border-radius:14px}
   .bigbtn{transition:transform .12s ease,box-shadow .12s ease}
-  .bigbtn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(20,46,59,.16)}
+  .bigbtn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.45)}
   .bigbtn:active{transform:translateY(0);box-shadow:none}
   .ghostbtn:hover{border-color:var(--accent);color:var(--cream);background:var(--accent-soft)}
   .glow{letter-spacing:-.045em}
@@ -181,10 +195,10 @@ const GLOBAL_STYLE = `
 
   /* app shell */
   .shell{min-height:100vh;display:grid;grid-template-columns:232px minmax(0,1fr);background:var(--bg)}
-  .sb{background:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:40;border-right:1px solid var(--line)}
+  .sb{background:var(--panel);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:40;border-right:1px solid var(--line)}
   .sb-nav{padding:16px 12px;display:flex;flex-direction:column;gap:3px;flex:1;overflow-y:auto}
-  .sb-sec{margin:16px 9px 7px;color:var(--dim)!important;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
-  .live-pill{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 11px;box-shadow:0 3px 12px rgba(20,46,59,.06)}
+  .sb-sec{margin:16px 9px 7px;color:var(--muted)!important;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+  .live-pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 11px;box-shadow:0 3px 12px rgba(0,0,0,.35)}
 
   @media (max-width:767px){
     .shell{grid-template-columns:1fr}
@@ -226,7 +240,7 @@ function navItem(item: Item, active: boolean): string {
   const base =
     "display:flex;align-items:center;width:100%;min-height:40px;padding:9px 11px;border-radius:9px;font-size:13px;font-weight:700;";
   const style = active
-    ? base + "color:#fff;background:var(--accent);box-shadow:0 4px 10px rgba(184,93,63,.18)"
+    ? base + "color:var(--on-accent);background:var(--accent);box-shadow:0 4px 10px rgba(199,255,77,.20)"
     : base + "color:var(--muted);background:transparent";
   return `<a href="${item.href}" class="navlink" style="${style}" aria-label="${item.label}">
     ${item.label}
@@ -272,7 +286,7 @@ function sidebar(activeTab: string, pro: boolean, niche: NichePack | null): stri
   return `<aside class="sb">
     <div class="sb-brand" style="padding:18px 16px 16px;border-bottom:1px solid var(--line)">
       <a href="/admin/overview" title="Hawk Guru Realtor Suite" aria-label="Hawk Guru Realtor Suite" style="display:flex;align-items:center;gap:10px;color:var(--cream)">
-        <span style="display:grid;place-items:center;width:35px;height:35px;border-radius:10px;background:var(--accent);color:#fff;font-family:'Manrope';font-weight:800;font-size:12px;letter-spacing:-.06em">HG</span>
+        <img src="/admin/brand/logo" alt="Hawk Guru" width="35" height="35" style="width:35px;height:35px;border-radius:10px;object-fit:cover;display:block">
         <span style="font-size:12px;line-height:1.1;font-weight:800;letter-spacing:-.02em">HAWK GURU<small style="display:block;margin-top:4px;color:var(--dim);font-size:8px;font-weight:800;letter-spacing:.12em">REALTOR SUITE</small></span>
       </a>
     </div>
@@ -311,7 +325,7 @@ export function layout(opts: { title: string; activeTab: string; body: string; e
   <div class="shell">
     ${sidebar(opts.activeTab, pro, niche)}
     <div style="display:flex;flex-direction:column;min-width:0">
-      <header style="position:sticky;top:0;z-index:30;background:rgba(244,241,235,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:15px 30px;display:flex;align-items:center;gap:20px">
+      <header style="position:sticky;top:0;z-index:30;background:rgba(9,16,13,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:15px 30px;display:flex;align-items:center;gap:20px">
         <div style="min-width:0">
           <div style="font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--dim);text-transform:uppercase">Hawk Guru Realtor Suite <span style="color:var(--linelit);padding:0 5px">/</span> ${section.label}</div>
           <h1 style="font-family:'Manrope';font-weight:800;font-size:21px;margin:3px 0 0;letter-spacing:-.035em">${item.label}</h1>
@@ -338,7 +352,7 @@ export function layout(opts: { title: string; activeTab: string; body: string; e
       opts += '<option value="' + p.url.replace(/"/g,'&quot;') + '">' + p.name.replace(/</g,'&lt;') + '</option>';
     });
     el.innerHTML = '<select onchange="if(this.value.indexOf(\'http\')===0)window.location=this.value" ' +
-      'style="background:#fff;color:var(--cream);border:1px solid var(--line);border-radius:9px;' +
+      'style="background:var(--panel);color:var(--cream);border:1px solid var(--line);border-radius:9px;' +
       'padding:7px 10px;font-family:\'Manrope\',sans-serif;font-size:11px;font-weight:600;letter-spacing:.01em;cursor:pointer" ' +
       'title="Cambiar de proyecto">' + opts + '</select>';
   }).catch(function(){});
@@ -384,7 +398,7 @@ export function renderUpgrade(env: Env, feature?: string): string {
         </p>
         <div style="display:grid;gap:10px;margin-bottom:22px">${perks}</div>
         <a href="/admin/pipelines" class="bigbtn"
-          style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);border:1px solid var(--accent);color:#fff;box-shadow:4px 4px 0 var(--linelit);padding:12px 20px;font-family:'Manrope';font-weight:800;font-size:14px">
+          style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);border:1px solid var(--accent);color:var(--on-accent);box-shadow:4px 4px 0 var(--linelit);padding:12px 20px;font-family:'Manrope';font-weight:800;font-size:14px">
           <i data-lucide="kanban-square" width="17" height="17"></i> Abrir Pipelines
         </a>
       </div>
@@ -417,7 +431,7 @@ export function loginPage(error?: string): string {
     <input name="email" type="email" required placeholder="tu@email.com"
       style="width:100%;background:var(--bg);border:1px solid var(--line);color:var(--cream);padding:10px 12px;font-size:13px;outline:none;margin-bottom:14px">
     <button class="bigbtn" type="submit"
-      style="width:100%;background:var(--accent);border:1px solid var(--accent);color:#fff;box-shadow:4px 4px 0 var(--linelit);padding:11px;font-family:'Manrope';font-weight:800;font-size:13px;cursor:pointer">
+      style="width:100%;background:var(--accent);border:1px solid var(--accent);color:var(--on-accent);box-shadow:4px 4px 0 var(--linelit);padding:11px;font-family:'Manrope';font-weight:800;font-size:13px;cursor:pointer">
       Mandar link
     </button>
   </form>

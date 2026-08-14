@@ -3,6 +3,16 @@
 
 name = "hawk-guru-realtor-suite"
 main = "src/index.ts"
+
+# Dominio del cliente. Antes apuntaba al bot de ~/Documents/forja chat bot/
+# inmobiliaria; se movio aca (3-ago-2026) porque este worker es el producto
+# completo del mismo cliente. Wrangler provisiona DNS y certificado solo.
+routes = [{ pattern = "jcl.hawkguru.com", custom_domain = true }]
+
+# OBLIGATORIA junto con `routes`: definir una route DESACTIVA la URL
+# .workers.dev por defecto, y ahi apuntan los webhooks ya registrados (Kapso,
+# Telegram). Sin esto el bot queda sordo sin que nada avise.
+workers_dev = true
 compatibility_date = "2026-05-01"
 compatibility_flags = ["nodejs_compat"]
 

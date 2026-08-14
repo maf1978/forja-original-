@@ -138,7 +138,7 @@ export function renderConexiones(env: Env): string {
     .map((ch) => {
       const badge = ch.ok
         ? `<span style="font-size:10px;letter-spacing:.14em;color:var(--ok);border:1px solid var(--ok);background:rgba(127,183,126,.08);padding:3px 10px;font-weight:700">● CONECTADO</span>`
-        : `<span style="font-size:10px;letter-spacing:.14em;color:var(--dim);border:1px solid var(--line);padding:3px 10px;font-weight:600">○ SIN CONECTAR</span>`;
+        : `<span style="font-size:10px;letter-spacing:.14em;color:var(--muted);border:1px solid var(--linelit);padding:3px 10px;font-weight:600">○ SIN CONECTAR</span>`;
 
       const missing = ch.ok
         ? ""

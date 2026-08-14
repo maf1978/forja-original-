@@ -18,6 +18,7 @@ import { createModel } from "../llm/provider";
 import { loadLlmOverrides } from "../settings-loader";
 import type { Env } from "../env";
 import { adminAuth } from "./auth";
+import { BRAND_LOGO_BYTES, BRAND_LOGO_TYPE } from "./brand-logo";
 import { layout, renderUpgrade } from "./views/layout";
 import { isPro } from "../config";
 import { renderOverview } from "./views/overview";
@@ -66,6 +67,18 @@ import { scoreRealEstateLead } from "../tools/qualifyRealEstateLead";
 import { getNiche } from "../niches";
 
 export const adminApp = new Hono<{ Bindings: Env }>();
+
+// Logo de marca. ANTES del guard de Basic Auth: un logo no es dato privado y
+// asi el <img> carga sin depender de que el navegador reenvie credenciales en
+// un subrecurso. Cache de un ano (solo cambia con un redeploy).
+adminApp.get("/brand/logo", () =>
+  new Response(BRAND_LOGO_BYTES, {
+    headers: {
+      "Content-Type": BRAND_LOGO_TYPE,
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
+  }),
+);
 
 // Guard every admin route with Basic Auth. The middleware factory needs the
 // request-scoped Env to read DASHBOARD_PASSWORD, so build it per request here.
